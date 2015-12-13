@@ -1,0 +1,45 @@
+#!/usr/bin/python3
+# 
+# Copyright (c) 2015, Arnaud Loonstra, All rights reserved.
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License as published by the Free Software Foundation; either
+# version 3.0 of the License, or (at your option) any later version.
+# 
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License v3 for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library.
+
+import argparse
+import appie
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Appie Static HTML generator for dynamic websites')
+    parser.add_argument('-s','--source', help='root directory with source files', required=True)
+    parser.add_argument('-t','--target', help='path to where the files will be generated', default="./build", required=False)
+    parser.add_argument('-w','--www', help='after generating serve the files through a http server ', default=False, required=False, action='store_true')
+    parser.add_argument('-p','--port', help='port for the http server', default=8000, type=int, required=False)
+    args = vars(parser.parse_args())
+    
+    a = appie.Appie(src=args.get('source'), target=args.get('target'))
+    a.parse()
+    
+    # serve files if requested
+    if args.get('www'):
+        from wsgiref.simple_server import make_server
+        from webob import static        
+        httpd = make_server('', 
+                        args.get('port'), 
+                        static.DirectoryApp(args.get('target'))
+                        )
+        print("Serving on port 8000...     press CTRL-C to quit")
+        # Serve until process is killed
+        try:
+            httpd.serve_forever()
+        except (KeyboardInterrupt, SystemExit):
+            print("\n")
