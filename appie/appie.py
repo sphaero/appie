@@ -17,10 +17,16 @@
 # License along with this library.
 
 import os
+import shutil
 from functools import reduce
 import textile
+import json
+import logging
 
 import pprint
+
+logger = logging.getLogger(__name__)
+
 
 def dir_structure_to_dict(rootdir):
     """
@@ -56,6 +62,7 @@ class AppieBaseParser(object):
         Raises StopParsing if it doesn't allow for for further parsing 
         of its tree.
         """
+        logging.debug("BaseParser parsing match_key {0}".format(match_key))
         pass
 
 
@@ -64,10 +71,9 @@ class AppieTextileParser(AppieBaseParser):
     Simple textile file to html parser
     """
     def parse(self, match_key, d, *args, **kwargs):
-        print(match_key)
         if match_key.endswith(".textile"):
+            logging.debug("TextileParser parsing match_key {0}".format(match_key))
             filepath = os.path.join(d[match_key].split('file://')[1], match_key)
-            print("parsing ", filepath)
             d[match_key] = self._parse_file(filepath)
             raise(AppieExceptStopParsing)
 
@@ -86,34 +92,59 @@ class Appie(object):
     def __init__(self, *args, **kwargs):
         self._buildroot = kwargs.get("target", "./build")
         self._buildsrc = kwargs.get("src", "./site_src")
+        self._buildwd = os.path.abspath(self._buildroot)
         self._directory_parsers = []
         self._file_parsers = [AppieTextileParser()]
 
     def parse(self):
+        """
+        Parse the full directory tree in self._buildroot
+        """
         dirtree = dir_structure_to_dict(self._buildsrc)
-        self.parse_file(dirtree)
-        #pprint.pprint(dirtree)
+        self.parse_file(dirtree, self._buildwd)
+        self.save_dict(dirtree, os.path.join(self._buildroot, 'all.json'))
 
-    def parse_file(self, d):
+    def parse_file(self, d, wd=""):
+        """
+        parse a dictionary leaf
+
+        args:
+        - d = dictionary
+        - wd = string containing the target work dir
+        """
         for key, val in d.items():
             # test if we match a directory parser
             try: 
                 self._match_dir_parsers(key, d)
             except AppieExceptStopParsing:
-                print("parser called to stop parsing this tree")
-                break
+                logging.debug("parser called to stop parsing this tree \
+                                {0}".format(key))
+                continue
             if isinstance(val, dict):
-                self.parse_file(val)
+                # if a dictionary recurse but first create its dir
+                try:
+                    os.makedirs(os.path.join(wd, key))
+                except FileExistsError:
+                    pass
+                self.parse_file(val, os.path.join(wd, key))
             elif val.startswith("file://"):
-                # is a file so either copy the file or parse it
+                # if a file either copy the file or parse it
                 # and replace the url in the dict
                 try:
                     self._match_file_parsers(key, d)
                 except AppieExceptStopParsing:
-                    break
-                #d[key] += "test"
+                    continue
+
+                filepath = os.path.join(val.split('file://')[1], key)
+                logging.debug("Copy file {0} to the directory {1}"\
+                                .format(filepath, wd))
+                shutil.copy(filepath, wd)
+                # save the path in the buildroot instead of the original
+                d[key] = wd.split(os.path.abspath(self._buildroot))[1]
+
             else:
-                raise Exception("value not a dict")
+                logging.debug("ERROR: key:{0}, val:{1}".format(key, val))
+                raise Exception("value not a dict, nor a leaf")
 
     def _match_dir_parsers(self, key, d):
         for parser in self._directory_parsers:
@@ -122,6 +153,10 @@ class Appie(object):
     def _match_file_parsers(self, key, d):
         for parser in self._file_parsers:
             parser.parse(key, d)
+
+    def save_dict(self, d, filepath):
+        with open(filepath, 'w') as f:
+            json.dump(d, f)
 
 
 if __name__ == '__main__':

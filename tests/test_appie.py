@@ -13,30 +13,51 @@ class AppieTest(unittest.TestCase):
 
     def setUp(self, *args, **kwargs):
         self.sitesrc = "./site_src"
-        appie.Appie("./site_src")
+        self.a = appie.Appie(self.sitesrc)
 
     def tearDown(self):
         shutil.rmtree("./build")
 
     def test_appie(self):
         # test site src dir structure
-        dstruct = {'about.textile': 'file:///home/people/arnaud/Documents/sphaero/appie/tests/site_src', 'img': {'spacecat.png': 'file:///home/people/arnaud/Documents/sphaero/appie/tests/site_src/img'}, 'home.textile': 'file:///home/people/arnaud/Documents/sphaero/appie/tests/site_src', 'files': {'report2009.pdf': 'file:///home/people/arnaud/Documents/sphaero/appie/tests/site_src/files', 'report2008.pdf': 'file:///home/people/arnaud/Documents/sphaero/appie/tests/site_src/files', 'report2010.pdf': 'file:///home/people/arnaud/Documents/sphaero/appie/tests/site_src/files'}}
+        dstruct = {'files': {
+                    'report2008.pdf': 'file://{0}/files'.format(self.sitesrc), 
+                    'report2009.pdf': 'file://{0}/files'.format(self.sitesrc), 
+                    'report2010.pdf': 'file://{0}/files'.format(self.sitesrc)
+                }, 
+                'img': {
+                    'img': {'spacecat.png': 'file://{0}/img/img'.format(self.sitesrc)
+                    }, 
+                    'spacecat.png': 'file://{0}/img'.format(self.sitesrc)
+                }, 
+                'home.textile': 'file://{0}'.format(self.sitesrc), 
+                'about.textile': 'file://{0}'.format(self.sitesrc)
+            }
+        d = appie.dir_structure_to_dict(self.sitesrc)
         self.assertDictEqual(appie.dir_structure_to_dict(self.sitesrc), dstruct)
         # run appie
-        
-        # test site build dit structure
+        self.a.parse()
+        # test site build dir structure
         self.assertTrue(os.path.isdir("./build"))
         self.assertTrue(os.path.isdir("./build/files"))
         self.assertTrue(os.path.isdir("./build/img"))
         # test if file
-        self.assertTrue(os.path.isfile("./build/file/report2008.pdf"))
-        self.assertTrue(os.path.isfile("./build/file/report2009.pdf"))
-        self.assertTrue(os.path.isfile("./build/file/report2010.pdf"))
+        self.assertTrue(os.path.isfile("./build/files/report2008.pdf"))
+        self.assertTrue(os.path.isfile("./build/files/report2009.pdf"))
+        self.assertTrue(os.path.isfile("./build/files/report2010.pdf"))
         self.assertTrue(os.path.isfile("./build/img/spacecat.png"))
-        self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
-        self.assertTrue(os.path.isfile("./build/img/spacecat_thumb.jpg"))
+        self.assertTrue(os.path.isfile("./build/img/img/spacecat.png"))
+        #self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
+        #self.assertTrue(os.path.isfile("./build/img/spacecat_thumb.jpg"))
         self.assertTrue(os.path.isfile("./build/all.json"))
         # test contents
         with open("./build/all.json") as f:
             j = json.load(f)
-        print(j)
+        jstruct = {'img': {'img': {'spacecat.png': '/img/img'}, 'spacecat.png': '/img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': '/files', 'report2008.pdf': '/files', 'report2010.pdf': '/files'}}
+        self.assertDictEqual(jstruct, j)
+
+
+import logging
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    unittest.main()
