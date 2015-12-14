@@ -32,7 +32,8 @@ class AppieTest(unittest.TestCase):
                 }, 
                 'home.textile': 'file://{0}'.format(self.sitesrc), 
                 'about.textile': 'file://{0}'.format(self.sitesrc),
-                '_test': 'file://./site_src'
+                '_test': 'file://./site_src',
+                'test.md': 'file://./site_src'
             }
         d = appie.dir_structure_to_dict(self.sitesrc)
         self.assertDictEqual(appie.dir_structure_to_dict(self.sitesrc), dstruct)
@@ -55,8 +56,16 @@ class AppieTest(unittest.TestCase):
         # test contents
         with open("./build/all.json") as f:
             j = json.load(f)
-        jstruct = {'img': {'img': {'spacecat.png': '/img/img'}, 'spacecat.png': '/img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': '/files', 'report2008.pdf': '/files', 'report2010.pdf': '/files'}, '_test': 'Testing\n'}
+        jstruct = {'img': {'img': {'spacecat.png': '/img/img'}, 'spacecat.png': '/img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': '/files', 'report2008.pdf': '/files', 'report2010.pdf': '/files'}, '_test': 'Testing\n', 'test.md': ''}
         self.assertDictEqual(jstruct, j)
+
+    def test_markdown(self):
+        self.a.add_file_parser(appie.AppieMarkdownParser())
+        # run appie
+        self.a.parse()
+        with open("./build/all.json") as f:
+            j = json.load(f)
+        self.assertEqual(j['test.md'], "<h1>Markdown</h1>\n<p>Test</p>")
 
 
 import logging
