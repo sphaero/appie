@@ -63,11 +63,14 @@ class AppiePNGParser(appie.AppieBaseParser):
             thumb_filename = os.path.splitext(match_key)[0] + "_thumb.jpg"
             
             img = Image.open(filepath)
-            img.thumbnail(self.jpg_size, Image.ANTIALIAS)
-            img.save(os.path.join(wd, jpg_filename))
-            img.thumbnail(self.thumb_size, Image.ANTIALIAS)
-            img.save(os.path.join(wd, thumb_filename))
-            img.close()
+            if img.mode in ('RGB', 'RGBA', 'CMYK', 'I'):
+                img.thumbnail(self.jpg_size, Image.ANTIALIAS)
+                img.save(os.path.join(wd, jpg_filename))
+                img.thumbnail(self.thumb_size, Image.ANTIALIAS)
+                img.save(os.path.join(wd, thumb_filename))
+            else:
+                logger.warning("Image {0} is not a valid color image"\
+                                .format(match_key))
 
             # copy the original to the root working dir
             shutil.copy(filepath, wd)
