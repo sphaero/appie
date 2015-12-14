@@ -12,8 +12,9 @@ copied to the target build directory.
 
 The following extensions are available:
 
-- *.textile: html text entry in the resulting json file
-- *.png: converted to a thumbnail jpg (filename_thumb.jpg) and a jpg with a fixed dimension (filename.jpg)
+- \_\*: any file starting with an \_ will be loaded into the json
+- \*.textile: html text entry in the resulting json file
+- \*.png: converted to a thumbnail jpg (filename_thumb.jpg) and a jpg with a fixed dimension (filename.jpg)
 
 Extensions being worked on:
 

@@ -31,7 +31,8 @@ class AppieTest(unittest.TestCase):
                     'spacecat.png': 'file://{0}/img'.format(self.sitesrc)
                 }, 
                 'home.textile': 'file://{0}'.format(self.sitesrc), 
-                'about.textile': 'file://{0}'.format(self.sitesrc)
+                'about.textile': 'file://{0}'.format(self.sitesrc),
+                '_test': 'file://./site_src'
             }
         d = appie.dir_structure_to_dict(self.sitesrc)
         self.assertDictEqual(appie.dir_structure_to_dict(self.sitesrc), dstruct)
@@ -45,6 +46,7 @@ class AppieTest(unittest.TestCase):
         self.assertTrue(os.path.isfile("./build/files/report2008.pdf"))
         self.assertTrue(os.path.isfile("./build/files/report2009.pdf"))
         self.assertTrue(os.path.isfile("./build/files/report2010.pdf"))
+        self.assertFalse(os.path.exists("./build/_test"))
         self.assertTrue(os.path.isfile("./build/img/spacecat.png"))
         self.assertTrue(os.path.isfile("./build/img/img/spacecat.png"))
         #self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
@@ -53,7 +55,7 @@ class AppieTest(unittest.TestCase):
         # test contents
         with open("./build/all.json") as f:
             j = json.load(f)
-        jstruct = {'img': {'img': {'spacecat.png': '/img/img'}, 'spacecat.png': '/img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': '/files', 'report2008.pdf': '/files', 'report2010.pdf': '/files'}}
+        jstruct = {'img': {'img': {'spacecat.png': '/img/img'}, 'spacecat.png': '/img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': '/files', 'report2008.pdf': '/files', 'report2010.pdf': '/files'}, '_test': 'Testing\n'}
         self.assertDictEqual(jstruct, j)
 
 

@@ -63,7 +63,20 @@ class AppieBaseParser(object):
         of its tree.
         """
         logging.debug("BaseParser parsing match_key {0}".format(match_key))
-        pass
+        if match_key[0] == "_":
+            filepath = os.path.join(d[match_key].split('file://')[1], match_key)
+            print(filepath)
+            d[match_key] = self._parse_file(filepath)
+            raise(AppieExceptStopParsing)
+
+    def _parse_file(self, file):
+        """
+        read the file and return the content parsed through textile
+        """
+        with open(file, 'r', encoding="utf8") as f:
+            data = f.read()
+        f.close()
+        return data
 
 
 class AppieTextileParser(AppieBaseParser):
@@ -81,11 +94,8 @@ class AppieTextileParser(AppieBaseParser):
         """
         read the file and return the content parsed through textile
         """
-        with open(file, 'r', encoding="utf8") as f:
-                data = f.read()
-        f.close()
-        return textile.textile(data)
- 
+        return textile.textile(super(AppieTextileParser, self)._parse_file(file))
+
 
 class Appie(object):
     
@@ -94,13 +104,15 @@ class Appie(object):
         self._buildsrc = kwargs.get("src", "./site_src")
         self._buildwd = os.path.abspath(self._buildroot)
         self._directory_parsers = []
-        self._file_parsers = [AppieTextileParser()]
+        self._file_parsers = [AppieTextileParser(), AppieBaseParser()]
 
     def parse(self):
         """
         Parse the full directory tree in self._buildroot
         """
         dirtree = dir_structure_to_dict(self._buildsrc)
+        # create the buildroot
+        os.makedirs(self._buildwd)
         self.parse_file(dirtree, self._buildwd)
         self.save_dict(dirtree, os.path.join(self._buildroot, 'all.json'))
 
