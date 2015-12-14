@@ -19,14 +19,17 @@ import appie
 import markdown
 import logging
 import os
+import shutil
+from PIL import Image
 
 logger = logging.getLogger(__name__)
+
 
 class AppieMarkdownParser(appie.AppieBaseParser):
     """
     Simple markdown file to html parser
     """
-    def parse(self, match_key, d, *args, **kwargs):
+    def parse(self, match_key, d, wd, *args, **kwargs):
         if match_key.endswith(".md"):
             logging.debug("MardownParser parsing match_key {0}".format(match_key))
             filepath = os.path.join(d[match_key].split('file://')[1], match_key)
@@ -39,3 +42,38 @@ class AppieMarkdownParser(appie.AppieBaseParser):
         """
         return markdown.markdown(
                     super(AppieMarkdownParser, self)._parse_file(file))
+
+
+class AppiePNGParser(appie.AppieBaseParser):
+    """
+    PNG parser converting PNGs to JPG and a JPG thumb
+    
+    Note: to not parse PNG images and just copy them to the build root use
+    a captital extension (.PNG). The parsers are case sensitive! 
+    """
+    def __init__(self, *args, **kwargs):
+        self.jpg_size = (800,450)
+        self.thumb_size = (192,108)
+
+    def parse(self, match_key, d, wd, *args, **kwargs):
+        if match_key.endswith(".png"):
+            logging.debug("PNGParser parsing match_key {0}".format(match_key))
+            filepath = os.path.join(d[match_key].split('file://')[1], match_key)
+            jpg_filename = os.path.splitext(match_key)[0] + "_web.jpg"
+            thumb_filename = os.path.splitext(match_key)[0] + "_thumb.jpg"
+            
+            img = Image.open(filepath)
+            img.thumbnail(self.jpg_size, Image.ANTIALIAS)
+            img.save(os.path.join(wd, jpg_filename))
+            img.thumbnail(self.thumb_size, Image.ANTIALIAS)
+            img.save(os.path.join(wd, thumb_filename))
+            img.close()
+
+            # copy the original to the root working dir
+            shutil.copy(filepath, wd)
+            d[match_key] = {
+                            'web': jpg_filename, 
+                            'thumb': thumb_filename,
+                            'md5': 'todo'
+                            }
+            raise(appie.AppieExceptStopParsing)

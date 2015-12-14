@@ -67,8 +67,32 @@ class AppieTest(unittest.TestCase):
             j = json.load(f)
         self.assertEqual(j['test.md'], "<h1>Markdown</h1>\n<p>Test</p>")
 
+    def test_pngparser(self):
+        import PIL
+        self.a.add_file_parser(appie.AppiePNGParser())
+        # run appie
+        self.a.parse()
+        with open("./build/all.json") as f:
+            j = json.load(f)
+        self.assertEqual(j['img']['spacecat.png'], {
+                                        'md5': 'todo',
+                                        'web': 'spacecat_web.jpg',
+                                        'thumb': 'spacecat_thumb.jpg'
+                                        })
+        img = PIL.Image.open('./build/img/spacecat_web.jpg')
+        # images should be less than or equal to specified size in parser 
+        self.assertIsInstance(img, PIL.JpegImagePlugin.JpegImageFile)
+        self.assertTrue(img.width <= 800)
+        self.assertTrue(img.height <= 450)
+
+        img = PIL.Image.open('./build/img/spacecat_thumb.jpg')
+        # images should be less than or equal to specified size in parser 
+        self.assertIsInstance(img, PIL.JpegImagePlugin.JpegImageFile)
+        self.assertTrue(img.width <= 192)
+        self.assertTrue(img.height <= 108)
+
 
 import logging
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

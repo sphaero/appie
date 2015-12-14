@@ -56,7 +56,7 @@ class AppieBaseParser(object):
     """
     The default parser, does nothing
     """
-    def parse(self, match_key, d, *args, **kwargs):
+    def parse(self, match_key, d, wd, *args, **kwargs):
         """
         Parses the dictionary d if match_key matches something it wants.
         Raises StopParsing if it doesn't allow for for further parsing 
@@ -65,7 +65,6 @@ class AppieBaseParser(object):
         logging.debug("BaseParser parsing match_key {0}".format(match_key))
         if match_key[0] == "_":
             filepath = os.path.join(d[match_key].split('file://')[1], match_key)
-            print(filepath)
             d[match_key] = self._parse_file(filepath)
             raise(AppieExceptStopParsing)
 
@@ -83,7 +82,7 @@ class AppieTextileParser(AppieBaseParser):
     """
     Simple textile file to html parser
     """
-    def parse(self, match_key, d, *args, **kwargs):
+    def parse(self, match_key, d, wd, *args, **kwargs):
         if match_key.endswith(".textile"):
             logging.debug("TextileParser parsing match_key {0}".format(match_key))
             filepath = os.path.join(d[match_key].split('file://')[1], match_key)
@@ -133,7 +132,7 @@ class Appie(object):
         for key, val in d.items():
             # test if we match a directory parser
             try: 
-                self._match_dir_parsers(key, d)
+                self._match_dir_parsers(key, d, wd)
             except AppieExceptStopParsing:
                 logging.debug("parser called to stop parsing this tree \
                                 {0}".format(key))
@@ -149,7 +148,7 @@ class Appie(object):
                 # if a file either copy the file or parse it
                 # and replace the url in the dict
                 try:
-                    self._match_file_parsers(key, d)
+                    self._match_file_parsers(key, d, wd)
                 except AppieExceptStopParsing:
                     continue
 
@@ -164,13 +163,13 @@ class Appie(object):
                 logging.debug("ERROR: key:{0}, val:{1}".format(key, val))
                 raise Exception("value not a dict, nor a leaf")
 
-    def _match_dir_parsers(self, key, d):
+    def _match_dir_parsers(self, key, d, wd):
         for parser in self._directory_parsers:
-            parser.parse(key, d)
+            parser.parse(key, d, wd)
 
-    def _match_file_parsers(self, key, d):
+    def _match_file_parsers(self, key, d, wd):
         for parser in self._file_parsers:
-            parser.parse(key, d)
+            parser.parse(key, d, wd)
 
     def save_dict(self, d, filepath):
         with open(filepath, 'w') as f:
