@@ -53,7 +53,7 @@ The file 'all.json' will contain:
 { "home.textile" : "<h3>Test</h3><p>This is just a test</p>",
   "about.textile" : "<h3>About</h3><p>What about it</p>",
   "files": {"report2010.pdf": "/files", "report2009.pdf": "/files", "report2008.pdf": "/files"}
-  "img" : { "banner": { "src": "banner.png", "thumb" : "banner_thumb.jpg", "web": "banner.jpg", }}
+  "img" : { "banner.png": { "thumb" : "banner_thumb.jpg", "web": "banner.jpg" }}
 }
 ```
 If you run appie with the -w flag it will serve the generated files through 
