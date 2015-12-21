@@ -63,7 +63,7 @@ class AppieBaseParser(object):
         of its tree.
         """
         logging.debug("BaseParser parsing match_key {0}".format(match_key))
-        if match_key[0] == "_":
+        if match_key[0] == "_" and d[match_key].startswith('file://'):
             filepath = os.path.join(d[match_key].split('file://')[1], match_key)
             d[match_key] = self._parse_file(filepath)
             raise(AppieExceptStopParsing)
@@ -117,7 +117,10 @@ class Appie(object):
         """
         dirtree = dir_structure_to_dict(self._buildsrc)
         # create the buildroot
-        os.makedirs(self._buildwd)
+        try:
+            os.makedirs(self._buildwd)
+        except FileExistsError:
+            pass
         self.parse_file(dirtree, self._buildwd)
         self.save_dict(dirtree, os.path.join(self._buildroot, 'all.json'))
 
@@ -159,9 +162,9 @@ class Appie(object):
                 # save the path in the buildroot instead of the original
                 d[key] = wd.split(os.path.abspath(self._buildroot))[1]
 
-            else:
-                logging.debug("ERROR: key:{0}, val:{1}".format(key, val))
-                raise Exception("value not a dict, nor a leaf")
+            #else:
+            #    logging.debug("ERROR: key:{0}, val:{1}".format(key, val))
+            #    raise Exception("value not a dict, nor a leaf")
 
     def _match_dir_parsers(self, key, d, wd):
         for parser in self._directory_parsers:

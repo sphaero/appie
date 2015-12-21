@@ -18,6 +18,23 @@
 import argparse
 import appie
 import logging
+import sys
+import importlib
+
+def str_to_class(class_path):
+    module_name, class_name = class_path.rsplit('.', 1)
+    try:
+        module_ = importlib.import_module(module_name)
+        try:
+            class_ = getattr(module_, class_name)()
+        except AttributeError:
+            logging.error('Class does not exist')
+            sys.exit(1)
+    except ImportError:
+        logging.error('Module does not exist')
+        sys.exit(1)
+    return class_
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Appie Static HTML generator for dynamic websites')
@@ -25,11 +42,20 @@ if __name__ == '__main__':
     parser.add_argument('-t','--target', help='path to where the files will be generated', default="./build", required=False)
     parser.add_argument('-w','--www', help='after generating serve the files through a http server ', default=False, required=False, action='store_true')
     parser.add_argument('-p','--port', help='port for the http server', default=8000, type=int, required=False)
+    parser.add_argument('-f','--file-ext', nargs='*', help="file parser extensions to add to appie", default=[])
+    parser.add_argument('-d','--dir-ext', nargs='*', help="directory parser extensions to add to appie", default=[])
     args = vars(parser.parse_args())
-    
+    #print(args.get('file_ext'), args)
+    #sys.exit(0)
     logging.basicConfig(level=logging.DEBUG)
     a = appie.Appie(src=args.get('source'), target=args.get('target'))
-    a.add_file_parser(appie.AppiePNGParser())
+    for p in args.get('file_ext', []):
+        instance = str_to_class(p)
+        a.add_file_parser(instance)
+    for p in args.get('dir_ext', []):        
+        instance = str_to_class(p)
+        a.add_directory_parser(instance)
+
     a.parse()
     
     # serve files if requested
