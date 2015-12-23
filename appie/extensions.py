@@ -20,6 +20,8 @@ import markdown
 import logging
 import os
 import shutil
+import filecmp
+
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -63,8 +65,7 @@ class AppiePNGParser(appie.AppieBaseParser):
             thumb_filename = os.path.splitext(match_key)[0] + "_thumb.jpg"
             # first test if the image already exists in the build dir
             # and is the same so we can skip it
-            import filecmp
-            if not filecmp.cmp(filepath, os.path.join(wd, match_key)):                
+            if not os.path.exists(os.path.join(wd, match_key)) or not filecmp.cmp(filepath, os.path.join(wd, match_key)):                
                 img = Image.open(filepath)
                 if img.mode in ('RGB', 'RGBA', 'CMYK', 'I'):
                     img.thumbnail(self.jpg_size, Image.ANTIALIAS)
