@@ -61,16 +61,19 @@ class AppiePNGParser(appie.AppieBaseParser):
             filepath = os.path.join(d[match_key].split('file://')[1], match_key)
             jpg_filename = os.path.splitext(match_key)[0] + "_web.jpg"
             thumb_filename = os.path.splitext(match_key)[0] + "_thumb.jpg"
-            
-            img = Image.open(filepath)
-            if img.mode in ('RGB', 'RGBA', 'CMYK', 'I'):
-                img.thumbnail(self.jpg_size, Image.ANTIALIAS)
-                img.save(os.path.join(wd, jpg_filename))
-                img.thumbnail(self.thumb_size, Image.ANTIALIAS)
-                img.save(os.path.join(wd, thumb_filename))
-            else:
-                logger.warning("Image {0} is not a valid color image"\
-                                .format(match_key))
+            # first test if the image already exists in the build dir
+            # and is the same so we can skip it
+            import filecmp
+            if not filecmp.cmp(filepath, os.path.join(wd, match_key)):                
+                img = Image.open(filepath)
+                if img.mode in ('RGB', 'RGBA', 'CMYK', 'I'):
+                    img.thumbnail(self.jpg_size, Image.ANTIALIAS)
+                    img.save(os.path.join(wd, jpg_filename))
+                    img.thumbnail(self.thumb_size, Image.ANTIALIAS)
+                    img.save(os.path.join(wd, thumb_filename))
+                else:
+                    logger.warning("Image {0} is not a valid color image"\
+                                    .format(match_key))
 
             # copy the original to the root working dir
             shutil.copy(filepath, wd)
