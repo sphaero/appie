@@ -159,8 +159,8 @@ class Appie(object):
                 logging.debug("Copy file {0} to the directory {1}"\
                                 .format(filepath, wd))
                 shutil.copy(filepath, wd)
-                # save the path in the buildroot instead of the original
-                d[key] = wd.split(os.path.abspath(self._buildroot))[1]
+                # save the relative! path in the buildroot instead of the original
+                d[key] = wd.split(os.path.abspath(self._buildroot))[1][1:]
 
             #else:
             #    logging.debug("ERROR: key:{0}, val:{1}".format(key, val))
