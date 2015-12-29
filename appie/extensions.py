@@ -54,8 +54,8 @@ class AppiePNGParser(appie.AppieBaseParser):
     a captital extension (.PNG). The parsers are case sensitive! 
     """
     def __init__(self, *args, **kwargs):
-        self.jpg_size = (800,450)
-        self.thumb_size = (192,108)
+        self.jpg_size = (1280,720)
+        self.thumb_size = (384,216)
 
     def parse(self, match_key, d, wd, *args, **kwargs):
         if match_key.endswith(".png"):
