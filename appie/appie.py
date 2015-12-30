@@ -102,14 +102,14 @@ class Appie(object):
         self._buildroot = kwargs.get("target", "./build")
         self._buildsrc = kwargs.get("src", "./site_src")
         self._buildwd = os.path.abspath(self._buildroot)
-        self._directory_parsers = set()
-        self._file_parsers = set([AppieTextileParser(), AppieBaseParser()])
+        self._directory_parsers = []
+        self._file_parsers = [AppieTextileParser(), AppieBaseParser()]
 
     def add_directory_parser(self, inst):
-        self._directory_parsers.add(inst)
+        self._directory_parsers.insert(0, inst)
 
     def add_file_parser(self, inst):
-        self._file_parsers.add(inst)
+        self._file_parsers.insert(0, inst)
 
     def parse(self):
         """
