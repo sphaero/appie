@@ -64,6 +64,7 @@ class AppieTest(unittest.TestCase):
         self.assertDictEqual(jstruct, j)
 
     def test_markdown(self):
+        print(dir(appie))
         self.a.add_file_parser(appie.AppieMarkdownParser())
         # run appie
         self.a.parse()
