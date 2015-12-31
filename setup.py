@@ -14,5 +14,6 @@ setup(
         scripts=['bin/appie'],
         include_package_data=True,
         requires=['textile', 'markdown', 'Pillow'],
+        install_requires=['textile', 'markdown', 'Pillow'],
 )
 

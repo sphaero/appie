@@ -64,7 +64,6 @@ class AppieTest(unittest.TestCase):
         self.assertDictEqual(jstruct, j)
 
     def test_markdown(self):
-        print(dir(appie))
         self.a.add_file_parser(appie.AppieMarkdownParser())
         # run appie
         self.a.parse()
@@ -87,14 +86,14 @@ class AppieTest(unittest.TestCase):
         img = PIL.Image.open('./build/img/spacecat_web.jpg')
         # images should be less than or equal to specified size in parser 
         self.assertIsInstance(img, PIL.JpegImagePlugin.JpegImageFile)
-        self.assertTrue(img.width <= 800)
-        self.assertTrue(img.height <= 450)
+        self.assertTrue(img.width <= 1280)
+        self.assertTrue(img.height <= 720)
 
         img = PIL.Image.open('./build/img/spacecat_thumb.jpg')
         # images should be less than or equal to specified size in parser 
         self.assertIsInstance(img, PIL.JpegImagePlugin.JpegImageFile)
-        self.assertTrue(img.width <= 192)
-        self.assertTrue(img.height <= 108)
+        self.assertTrue(img.width <= 384)
+        self.assertTrue(img.height <= 216)
 
 
 import logging
