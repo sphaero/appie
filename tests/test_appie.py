@@ -12,11 +12,15 @@ if sys.version.startswith('3'):
 class AppieTest(unittest.TestCase):
 
     def setUp(self, *args, **kwargs):
-        self.sitesrc = "./site_src"
-        self.a = appie.Appie(self.sitesrc)
+        self.maxDiff = None
+        self.sitesrc = "./tests/site_src"
+        self.a = appie.Appie(src=self.sitesrc)
 
     def tearDown(self):
-        shutil.rmtree("./build")
+        try:
+            shutil.rmtree("./build")
+        except FileNotFoundError:
+            pass
 
     def test_appie(self):
         # test site src dir structure
@@ -32,8 +36,8 @@ class AppieTest(unittest.TestCase):
                 }, 
                 'home.textile': 'file://{0}'.format(self.sitesrc), 
                 'about.textile': 'file://{0}'.format(self.sitesrc),
-                '_test': 'file://./site_src',
-                'test.md': 'file://./site_src'
+                '_test': 'file://{0}'.format(self.sitesrc),
+                'test.md': 'file://{0}'.format(self.sitesrc)
             }
         d = appie.dir_structure_to_dict(self.sitesrc)
         self.assertDictEqual(appie.dir_structure_to_dict(self.sitesrc), dstruct)
@@ -56,7 +60,7 @@ class AppieTest(unittest.TestCase):
         # test contents
         with open("./build/all.json") as f:
             j = json.load(f)
-        jstruct = {'img': {'img': {'spacecat.png': '/img/img'}, 'spacecat.png': '/img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': '/files', 'report2008.pdf': '/files', 'report2010.pdf': '/files'}, '_test': 'Testing\n', 'test.md': ''}
+        jstruct = {'img': {'img': {'spacecat.png': 'img/img'}, 'spacecat.png': 'img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': 'files', 'report2008.pdf': 'files', 'report2010.pdf': 'files'}, '_test': 'Testing\n', 'test.md': ''}
         self.assertDictEqual(jstruct, j)
 
     def test_markdown(self):
