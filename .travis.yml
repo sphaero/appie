@@ -11,6 +11,7 @@ install:
   - 'pip install textile'
   - 'pip install markdown'
   - 'pip install Pillow'
+  - 'pip install .'
 branches:
   only:
     - master
