@@ -17,7 +17,7 @@ Just use Pip:
 
     pip install https://github.com/sphaero/appie/archive/master.zip
 
-*Appie is developed for Python3! It might work on Python2 but please stop using Python2!*
+*Appie is developed for Python3! It might work on Python2 but please stop using Python2! Unittest are also only testing Python>3.3.*
 
 ## Extensions
 

@@ -1,18 +1,13 @@
 language: python
 python:
-  - "2.7"
-  - "3.2"
+#  - "2.7"
+#  - "3.2"
   - "3.3"
   - "3.4"
-#env:
-#  - PYTHONPATH="appie"
 # command to install dependencies
 install:
-  - 'pip install textile'
-  - 'pip install markdown'
-  - 'pip install Pillow'
   - 'pip install .'
 branches:
   only:
     - master
-script: python -m unittest tests/test_appie.py
+script: python tests/test_appie.py
