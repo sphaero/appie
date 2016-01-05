@@ -54,12 +54,12 @@ class AppiePNGParser(appie.AppieBaseParser):
     a captital extension (.PNG). The parsers are case sensitive! 
     """
     def __init__(self, *args, **kwargs):
-        self.jpg_size = (1280,720)
-        self.thumb_size = (384,216)
+        self.jpg_size = appie.config.get('jpg_size', (1280,720))
+        self.thumb_size = appie.config.get('thumb_size', (384,216))
 
     def parse(self, match_key, d, wd, *args, **kwargs):
         if match_key.endswith(".png"):
-            logging.debug("PNGParser parsing match_key {0}".format(match_key))
+            logging.debug("PNGParser parsing match_key {0}@{1}".format(match_key, wd))
             filepath = os.path.join(d[match_key].split('file://')[1], match_key)
             jpg_filename = os.path.splitext(match_key)[0] + "_web.jpg"
             thumb_filename = os.path.splitext(match_key)[0] + "_thumb.jpg"
@@ -76,11 +76,14 @@ class AppiePNGParser(appie.AppieBaseParser):
                     logger.warning("Image {0} is not a valid color image"\
                                     .format(match_key))
 
+            # get wd relative path
+            wdpath = wd.split(os.path.abspath(appie.config['target']))[1]
             # copy the original to the root working dir
             shutil.copy(filepath, wd)
             d[match_key] = {
                             'web': jpg_filename, 
                             'thumb': thumb_filename,
+                            'path': wdpath,
                             'md5': 'todo'
                             }
             raise(appie.AppieExceptStopParsing)

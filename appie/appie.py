@@ -27,6 +27,7 @@ import pprint
 
 logger = logging.getLogger(__name__)
 
+config = {'target': "./build", 'src': "./site_src" } 
 
 def dir_structure_to_dict(rootdir):
     """
@@ -99,8 +100,8 @@ class AppieTextileParser(AppieBaseParser):
 class Appie(object):
     
     def __init__(self, *args, **kwargs):
-        self._buildroot = kwargs.get("target", "./build")
-        self._buildsrc = kwargs.get("src", "./site_src")
+        self._buildroot = config["target"]
+        self._buildsrc = config["src"]
         self._buildwd = os.path.abspath(self._buildroot)
         self._directory_parsers = []
         self._file_parsers = [AppieTextileParser(), AppieBaseParser()]
