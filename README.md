@@ -29,8 +29,8 @@ The following extensions are available:
 
 Some non default extensions:
 
-- \_rd\_\*: directories starting with _rd_ will be parsed into an academic 
-style paper
+- \_rd\_\*: directories starting with \_rd\_ will be parsed into an academic 
+style paper.
 
 ## Example
 
