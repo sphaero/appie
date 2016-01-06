@@ -1,5 +1,7 @@
 # Appie
 
+[![Build Status](https://travis-ci.org/sphaero/appie.svg?branch=master)](https://travis-ci.org/sphaero/appie)
+
 Appie is a simple static generator for dynamic websites. Dynamic websites? Yes! Although Appie can generate HTML files its focus is on providing all information of files residing in your website's directory. As a HTML file can not see what's available on your website Appie will provide a JSON file containing exactly this. From this the HTML file, using javascript, can figure things out. By matching to certain filenames the JSON file can be filled with specific data. For example a file with the .textile extension is parsed into HTML. Same holds for files ending with a .md extension.
 
 Just point Appie to a directory and it will provide you with a JSON file with all of its 
@@ -63,7 +65,7 @@ The file 'all.json' will contain:
     { "home.textile" : "<h3>Test</h3><p>This is just a test</p>",
       "about.textile" : "<h3>About</h3><p>What about it</p>",
       "files": {"report2010.pdf": "/files", "report2009.pdf": "/files", "report2008.pdf": "/files"}
-      "img" : { "banner.png": { "thumb" : "banner_thumb.jpg", "web": "banner.jpg" }}
+      "img" : { "banner.png": { "thumb" : "banner_thumb.jpg", "web": "banner.jpg", "path": "img"}}
     }
     
 ## Built-in webserver

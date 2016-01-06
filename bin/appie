@@ -44,15 +44,20 @@ if __name__ == '__main__':
     parser.add_argument('-p','--port', help='port for the http server', default=8000, type=int, required=False)
     parser.add_argument('-f','--file-ext', nargs='*', help="file parser extensions to add to appie (LIFO order)", default=[])
     parser.add_argument('-d','--dir-ext', nargs='*', help="directory parser extensions to add to appie (LIFO order)", default=[])
+    parser.add_argument('-v','--verbose', help="verbose output", default=False, required=False, action='store_true')
     args = vars(parser.parse_args())
     #print(args.get('file_ext'), args)
     #sys.exit(0)
-    logging.basicConfig(level=logging.DEBUG)
-    a = appie.Appie(src=args.get('source'), target=args.get('target'))
+    appie.config['src'] = args.get('source')
+    appie.config['target'] = args.get('target')
+    appie.config['verbose'] = args.get('verbose')
+    if appie.config['verbose']:
+        logging.basicConfig(level=logging.DEBUG)
+    a = appie.Appie()
     for p in args.get('file_ext', []):
         instance = str_to_class(p)
         a.add_file_parser(instance)
-    for p in args.get('dir_ext', []):        
+    for p in args.get('dir_ext', []):
         instance = str_to_class(p)
         a.add_directory_parser(instance)
 
