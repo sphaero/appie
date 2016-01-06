@@ -13,8 +13,9 @@ class AppieTest(unittest.TestCase):
 
     def setUp(self, *args, **kwargs):
         self.maxDiff = None
-        self.sitesrc = "./tests/site_src"
-        self.a = appie.Appie(src=self.sitesrc)
+        appie.config['src'] = "./tests/site_src"
+        self.sitesrc = appie.config['src']
+        self.a = appie.Appie()
 
     def tearDown(self):
         try:
@@ -80,6 +81,7 @@ class AppieTest(unittest.TestCase):
             j = json.load(f)
         self.assertEqual(j['img']['spacecat.png'], {
                                         'md5': 'todo',
+                                        'path': 'img',
                                         'web': 'spacecat_web.jpg',
                                         'thumb': 'spacecat_thumb.jpg'
                                         })

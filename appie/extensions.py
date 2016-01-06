@@ -73,11 +73,12 @@ class AppiePNGParser(appie.AppieBaseParser):
                     img.thumbnail(self.thumb_size, Image.ANTIALIAS)
                     img.save(os.path.join(wd, thumb_filename))
                 else:
-                    logger.warning("Image {0} is not a valid color image"\
-                                    .format(match_key))
+                    logger.warning("Image {0} is not a valid color image (mode={1}"\
+                                    .format(match_key, img.mode))
+                    return
 
-            # get wd relative path
-            wdpath = wd.split(os.path.abspath(appie.config['target']))[1]
+            # get wd relative path excluding first /
+            wdpath = wd.split(os.path.abspath(appie.config['target']))[1][1:]
             # copy the original to the root working dir
             shutil.copy(filepath, wd)
             d[match_key] = {

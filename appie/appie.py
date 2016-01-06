@@ -1,4 +1,4 @@
-#!/usr/bin/python3 
+#!/usr/bin/python3
 # 
 # Copyright (c) 2013, Arnaud Loonstra, All rights reserved.
 # Copyright (c) 2013, Stichting z25.org, All rights reserved.
