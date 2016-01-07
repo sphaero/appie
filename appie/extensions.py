@@ -73,7 +73,7 @@ class AppiePNGParser(appie.AppieBaseParser):
                     img.thumbnail(self.thumb_size, Image.ANTIALIAS)
                     img.save(os.path.join(wd, thumb_filename))
                 else:
-                    logger.warning("Image {0} is not a valid color image (mode={1}"\
+                    logger.warning("Image {0} is not a valid color image (mode={1})"\
                                     .format(match_key, img.mode))
                     return
 
