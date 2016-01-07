@@ -76,15 +76,17 @@ class AppiePNGParser(appie.AppieBaseParser):
                     logger.warning("Image {0} is not a valid color image (mode={1})"\
                                     .format(match_key, img.mode))
                     return
-
-            # get wd relative path excluding first /
-            wdpath = wd.split(os.path.abspath(appie.config['target']))[1][1:]
-            # copy the original to the root working dir
-            shutil.copy(filepath, wd)
-            d[match_key] = {
-                            'web': jpg_filename, 
-                            'thumb': thumb_filename,
-                            'path': wdpath,
-                            'md5': 'todo'
-                            }
-            raise(appie.AppieExceptStopParsing)
+            # make sure the resized images exists otherwise skip since it
+            # was probably an invalid color format so no resizing was done
+            if os.path.exists(os.path.join(wd, jpg_filename)):
+                # get wd relative path excluding first /
+                wdpath = wd.split(os.path.abspath(appie.config['target']))[1][1:]
+                # copy the original to the root working dir
+                shutil.copy(filepath, wd)
+                d[match_key] = {
+                                'web': jpg_filename, 
+                                'thumb': thumb_filename,
+                                'path': wdpath,
+                                'md5': 'todo'
+                                }
+                raise(appie.AppieExceptStopParsing)
