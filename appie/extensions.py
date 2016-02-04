@@ -43,7 +43,9 @@ class AppieMarkdownParser(appie.AppieBaseParser):
         read the file and return the content parsed through textile
         """
         return markdown.markdown(
-                    super(AppieMarkdownParser, self)._parse_file(file))
+                    super(AppieMarkdownParser, self)._parse_file(file),
+                    extensions=['markdown.extensions.tables',]
+                    )
 
 
 class AppiePNGParser(appie.AppieBaseParser):
