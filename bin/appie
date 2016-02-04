@@ -30,8 +30,8 @@ def str_to_class(class_path):
         except AttributeError:
             logging.error('Class does not exist')
             sys.exit(1)
-    except ImportError:
-        logging.error('Module does not exist')
+    except ImportError as e:
+        logging.error('Module does not exist: {0}'.format(e))
         sys.exit(1)
     return class_
 
