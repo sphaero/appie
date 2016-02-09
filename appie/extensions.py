@@ -71,9 +71,9 @@ class AppiePNGParser(appie.AppieBaseParser):
                 img = Image.open(filepath)
                 if img.mode in ('RGB', 'RGBA', 'CMYK', 'I'):
                     img.thumbnail(self.jpg_size, Image.ANTIALIAS)
-                    img.save(os.path.join(wd, jpg_filename))
+                    img.save(os.path.join(wd, jpg_filename), "JPEG", quality=80, optimize=True, progressive=True)
                     img.thumbnail(self.thumb_size, Image.ANTIALIAS)
-                    img.save(os.path.join(wd, thumb_filename))
+                    img.save(os.path.join(wd, thumb_filename), "JPEG", quality=80, optimize=True, progressive=True)
                 else:
                     logger.warning("Image {0} is not a valid color image (mode={1})"\
                                     .format(match_key, img.mode))
