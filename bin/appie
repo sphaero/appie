@@ -62,16 +62,18 @@ if __name__ == '__main__':
         a.add_directory_parser(instance)
 
     a.parse()
-    
+
     # serve files if requested
     if args.get('www'):
-        from wsgiref.simple_server import make_server
-        from webob import static        
-        httpd = make_server('', 
-                        args.get('port'), 
-                        static.DirectoryApp(args.get('target'))
-                        )
-        print("Serving on port 8000...     press CTRL-C to quit")
+        import http.server
+        import socketserver
+        import os
+        os.chdir(appie.config['target'])
+
+        PORT = args.get('port')
+        Handler = http.server.SimpleHTTPRequestHandler
+        httpd = socketserver.TCPServer(("", PORT), Handler)
+        print("Serving on port {0}...     press CTRL-C to quit".format(PORT))
         # Serve until process is killed
         try:
             httpd.serve_forever()
