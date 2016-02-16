@@ -40,7 +40,7 @@ class AppieMarkdownParser(appie.AppieBaseParser):
 
     def _parse_file(self, file):
         """
-        read the file and return the content parsed through textile
+        Read the file and return the content parsed through markdown
         """
         return markdown.markdown(
                     super(AppieMarkdownParser, self)._parse_file(file),
@@ -52,8 +52,8 @@ class AppiePNGParser(appie.AppieBaseParser):
     """
     PNG parser converting PNGs to JPG and a JPG thumb
     
-    Note: to not parse PNG images and just copy them to the build root use
-    a captital extension (.PNG). The parsers are case sensitive! 
+    :note: to not parse PNG images and just copy them to the build root 
+           use a captital extension (.PNG). The parsers are case sensitive! 
     """
     def __init__(self, *args, **kwargs):
         self.jpg_size = appie.config.get('jpg_size', (1280,720))
@@ -99,8 +99,8 @@ class AppieJPGParser(appie.AppieBaseParser):
     PNG parser converting JPGs to progressive JPG and a JPG thumb if they
     are larger than the 'jpg_size' setting.
     
-    Note: to not parse JPG images and just copy them to the build root use
-    a captital extension (.JPG). The parsers are case sensitive! 
+    :note: to not parse JPG images and just copy them to the build root use
+		   a captital extension (.JPG). The parsers are case sensitive! 
     """
     def __init__(self, *args, **kwargs):
         self.jpg_size = appie.config.get('jpg_size', (1280,720))
