@@ -55,13 +55,18 @@ class AppieExceptStopParsing(Exception):
 class AppieBaseParser(object):
 
     """
-    The default parser, does nothing
+    The default parser, does nothing but load files prepended with '_'
+    (underscore)
     """
     def parse(self, match_key, d, wd, *args, **kwargs):
         """
         Parses the dictionary d if match_key matches something it wants.
         Raises StopParsing if it doesn't allow for for further parsing 
         of its tree.
+        
+        :param str match_key: filename to match on
+        :param dict d: dictionary belonging to match_key
+        :param list wd: current working directory as a list 
         """
         logging.debug("BaseParser parsing match_key {0}".format(match_key))
         if match_key[0] == "_" and d[match_key].startswith('file://'):
@@ -72,6 +77,8 @@ class AppieBaseParser(object):
     def _parse_file(self, file):
         """
         read the file and return the content parsed through textile
+        
+        :param str file: the path to the file
         """
         with open(file, 'r', encoding="utf8") as f:
             data = f.read()
@@ -84,6 +91,14 @@ class AppieTextileParser(AppieBaseParser):
     Simple textile file to html parser
     """
     def parse(self, match_key, d, wd, *args, **kwargs):
+        """
+        Parses textile files (match_key) with .textile extension to html.
+        Raises AppieExceptStopParsing when a file is matched and parsed.
+        
+        :param str match_key: filename to match on
+        :param dict d: dictionary belonging to match_key
+        :param list wd: current working directory as a list
+        """
         if match_key.endswith(".textile"):
             logging.debug("TextileParser parsing match_key {0}".format(match_key))
             filepath = os.path.join(d[match_key].split('file://')[1], match_key)
@@ -107,9 +122,19 @@ class Appie(object):
         self._file_parsers = [AppieTextileParser(), AppieBaseParser()]
 
     def add_directory_parser(self, inst):
+        """
+        Adds a parser instance to match on directory names
+   
+        :param instance inst: parser instance
+        """     
         self._directory_parsers.insert(0, inst)
 
     def add_file_parser(self, inst):
+        """
+        Adds a parser instance to match on filenames
+   
+        :param instance inst: parser instance
+        """     
         self._file_parsers.insert(0, inst)
 
     def parse(self):
@@ -127,11 +152,10 @@ class Appie(object):
 
     def parse_file(self, d, wd=""):
         """
-        parse a dictionary leaf
+        Parse a dictionary leaf
 
-        args:
-        - d = dictionary
-        - wd = string containing the target work dir
+        :param dict d: the dictionary to parse
+        :param string wd: string containing the target directory
         """
         for key, val in d.items():
             # test if we match a directory parser
@@ -176,6 +200,12 @@ class Appie(object):
             parser.parse(key, d, wd)
 
     def save_dict(self, d, filepath):
+        """
+        Save dictionary to json file
+
+        :param dict d: the dictionary to save
+        :param string filepath: string containing the full target filepath
+        """
         with open(filepath, 'w') as f:
             json.dump(d, f)
 
