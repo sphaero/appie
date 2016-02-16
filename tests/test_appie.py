@@ -33,7 +33,8 @@ class AppieTest(unittest.TestCase):
                 'img': {
                     'img': {'spacecat.png': 'file://{0}/img/img'.format(self.sitesrc)
                     }, 
-                    'spacecat.png': 'file://{0}/img'.format(self.sitesrc)
+                    'spacecat.png': 'file://{0}/img'.format(self.sitesrc),
+                    'spacecat.jpg': 'file://{0}/img'.format(self.sitesrc)
                 }, 
                 'home.textile': 'file://{0}'.format(self.sitesrc), 
                 'about.textile': 'file://{0}'.format(self.sitesrc),
@@ -54,6 +55,7 @@ class AppieTest(unittest.TestCase):
         self.assertTrue(os.path.isfile("./build/files/report2010.pdf"))
         self.assertFalse(os.path.exists("./build/_test"))
         self.assertTrue(os.path.isfile("./build/img/spacecat.png"))
+        self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
         self.assertTrue(os.path.isfile("./build/img/img/spacecat.png"))
         #self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
         #self.assertTrue(os.path.isfile("./build/img/spacecat_thumb.jpg"))
@@ -61,7 +63,7 @@ class AppieTest(unittest.TestCase):
         # test contents
         with open("./build/all.json") as f:
             j = json.load(f)
-        jstruct = {'img': {'img': {'spacecat.png': 'img/img'}, 'spacecat.png': 'img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': 'files', 'report2008.pdf': 'files', 'report2010.pdf': 'files'}, '_test': 'Testing\n', 'test.md': ''}
+        jstruct = {'img': {'img': {'spacecat.png': 'img/img'}, 'spacecat.png': 'img', 'spacecat.jpg': 'img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': 'files', 'report2008.pdf': 'files', 'report2010.pdf': 'files'}, '_test': 'Testing\n', 'test.md': ''}
         self.assertDictEqual(jstruct, j)
 
     def test_markdown(self):
@@ -80,6 +82,31 @@ class AppieTest(unittest.TestCase):
         with open("./build/all.json") as f:
             j = json.load(f)
         self.assertEqual(j['img']['spacecat.png'], {
+                                        'md5': 'todo',
+                                        'path': 'img',
+                                        'web': 'spacecat_web.jpg',
+                                        'thumb': 'spacecat_thumb.jpg'
+                                        })
+        img = PIL.Image.open('./build/img/spacecat_web.jpg')
+        # images should be less than or equal to specified size in parser 
+        self.assertIsInstance(img, PIL.JpegImagePlugin.JpegImageFile)
+        self.assertTrue(img.width <= 1280)
+        self.assertTrue(img.height <= 720)
+
+        img = PIL.Image.open('./build/img/spacecat_thumb.jpg')
+        # images should be less than or equal to specified size in parser 
+        self.assertIsInstance(img, PIL.JpegImagePlugin.JpegImageFile)
+        self.assertTrue(img.width <= 384)
+        self.assertTrue(img.height <= 216)
+
+    def test_jpgparser(self):
+        import PIL
+        self.a.add_file_parser(appie.AppieJPGParser())
+        # run appie
+        self.a.parse()
+        with open("./build/all.json") as f:
+            j = json.load(f)
+        self.assertEqual(j['img']['spacecat.jpg'], {
                                         'md5': 'todo',
                                         'path': 'img',
                                         'web': 'spacecat_web.jpg',
