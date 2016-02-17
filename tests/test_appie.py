@@ -36,7 +36,8 @@ class AppieTest(unittest.TestCase):
                     'spacecat.png': 'file://{0}/img'.format(self.sitesrc),
                     'spacecat.jpg': 'file://{0}/img'.format(self.sitesrc)
                 }, 
-                'home.textile': 'file://{0}'.format(self.sitesrc), 
+                'home.textile': 'file://{0}'.format(self.sitesrc),
+                'blog.md.html': 'file://{0}'.format(self.sitesrc),
                 'about.textile': 'file://{0}'.format(self.sitesrc),
                 '_test': 'file://{0}'.format(self.sitesrc),
                 'test.md': 'file://{0}'.format(self.sitesrc)
@@ -53,6 +54,7 @@ class AppieTest(unittest.TestCase):
         self.assertTrue(os.path.isfile("./build/files/report2008.pdf"))
         self.assertTrue(os.path.isfile("./build/files/report2009.pdf"))
         self.assertTrue(os.path.isfile("./build/files/report2010.pdf"))
+        self.assertTrue(os.path.isfile("./build/blog.md.html"))
         self.assertFalse(os.path.exists("./build/_test"))
         self.assertTrue(os.path.isfile("./build/img/spacecat.png"))
         self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
@@ -63,7 +65,7 @@ class AppieTest(unittest.TestCase):
         # test contents
         with open("./build/all.json") as f:
             j = json.load(f)
-        jstruct = {'img': {'img': {'spacecat.png': 'img/img'}, 'spacecat.png': 'img', 'spacecat.jpg': 'img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': 'files', 'report2008.pdf': 'files', 'report2010.pdf': 'files'}, '_test': 'Testing\n', 'test.md': ''}
+        jstruct = {'img': {'img': {'spacecat.png': 'img/img'}, 'spacecat.png': 'img', 'spacecat.jpg': 'img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': 'files', 'report2008.pdf': 'files', 'report2010.pdf': 'files'}, '_test': 'Testing\n', 'test.md': '', 'blog.md.html': ''}
         self.assertDictEqual(jstruct, j)
 
     def test_markdown(self):
@@ -73,6 +75,26 @@ class AppieTest(unittest.TestCase):
         with open("./build/all.json") as f:
             j = json.load(f)
         self.assertEqual(j['test.md'], "<h1>Markdown</h1>\n<p>Test</p>")
+
+    def test_markdown_to_file(self):
+        self.a.add_file_parser(appie.AppieMarkdownToFileParser())
+        # run appie
+        self.a.parse()
+        with open("./build/all.json") as f:
+            j = json.load(f)
+        self.assertEqual(j['blog.md.html'], {
+                'title' : ['My Document'],
+                'summary' : ['A brief description of my document.'],
+                'authors' : ['Waylan Limberg', 'John Doe'],
+                'date' : ['October 2, 2007'],
+                'blank-value' : [''],
+                'abstract' : '<h1>A heading</h1>\n<p>This is the first paragraph of the document.</p>',
+                'base_url' : ['http://example.com']
+            })
+        self.assertTrue(os.path.isfile("./build/blog.md.html"))
+        with open("./build/blog.md.html") as f:
+            html = f.read()
+        self.assertEqual(html, "<h1 id=\"a-heading\">A heading</h1>\n<p>This is the first paragraph of the document.</p>")
 
     def test_pngparser(self):
         import PIL
