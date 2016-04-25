@@ -115,9 +115,10 @@ class AppieTextileParser(AppieBaseParser):
 class Appie(object):
     
     def __init__(self, *args, **kwargs):
-        self._buildroot = config["target"]
-        self._buildsrc = config["src"]
-        self._buildwd = os.path.abspath(self._buildroot)
+        # check if string and convert to list if so
+        if isinstance(config["src"], str):
+            config["src"] = [config["src"]]
+        self._buildwd = os.path.abspath(config["target"])
         self._directory_parsers = []
         self._file_parsers = [AppieTextileParser(), AppieBaseParser()]
 
@@ -139,16 +140,20 @@ class Appie(object):
 
     def parse(self):
         """
-        Parse the full directory tree in self._buildroot
+        Parse the all source directories
         """
-        dirtree = dir_structure_to_dict(self._buildsrc)
         # create the buildroot
         try:
             os.makedirs(self._buildwd)
         except FileExistsError:
             pass
-        self.parse_file(dirtree, self._buildwd)
-        self.save_dict(dirtree, os.path.join(self._buildroot, 'all.json'))
+
+        final = {}
+        for src in config["src"]:
+            dirtree = dir_structure_to_dict(src)
+            self.parse_file(dirtree, self._buildwd)
+            final.update(dirtree)
+        self.save_dict(dirtree, os.path.join(config["target"], 'all.json'))
 
     def parse_file(self, d, wd=""):
         """
@@ -185,7 +190,7 @@ class Appie(object):
                                 .format(filepath, wd))
                 shutil.copy(filepath, wd)
                 # save the relative! path in the buildroot instead of the original
-                d[key] = wd.split(os.path.abspath(self._buildroot))[1][1:]
+                d[key] = wd.split(self._buildwd)[1][1:]
 
             #else:
             #    logging.debug("ERROR: key:{0}, val:{1}".format(key, val))
