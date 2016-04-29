@@ -68,6 +68,7 @@ if __name__ == '__main__':
         import http.server
         import socketserver
         import os
+        import select
         os.chdir(appie.config['target'])
 
         PORT = args.get('port')
@@ -75,7 +76,14 @@ if __name__ == '__main__':
         httpd = socketserver.TCPServer(("", PORT), Handler)
         print("Serving on port {0}...     press CTRL-C to quit".format(PORT))
         # Serve until process is killed
+        #httpd.__is_shut_down.clear()
         try:
-            httpd.serve_forever()
+            while not httpd._BaseServer__shutdown_request:
+                r,w,e = select.select( [httpd], [], [], 0.5)
+                if httpd in r:
+                    httpd._handle_request_noblock() 
         except (KeyboardInterrupt, SystemExit):
             print("\n")
+        finally:
+            httpd._BaseServer__shutdown_request = False
+            #httpd.__is_shut_down.set()
