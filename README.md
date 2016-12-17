@@ -42,8 +42,12 @@ The following extensions are available:
 
 Some non default extensions:
 
-- \_rd\_\*: directories starting with \_rd\_ will be parsed into an academic 
-style paper.
+- *.md.html: simple markdown file to html file parser matching on '.md.html' 
+extensions. 
+- blog/: a directory named blog will be parsed as a blog. Blog entries consist
+of a markdown file (.md) containing metadata. The metadata will be fed to the 
+blog.jinja2 file which generates static html files. The json will contain 
+all blog entries and metadata. See below for an example
 
 ## Example
 
@@ -86,7 +90,62 @@ For your development convenience Appie can also serve from the build directory. 
     $ appie -s /path/to/directory -w -p 8000
     Serving on port 8000...     press CTRL-C to quit
     
+## Blog example
 
+For example we have the following directory contents:
+
+    ./blog
+    ./blog/blog.jinja2
+    ./blog/first_post.md
+    ./blog/img/first.jpg
+    
+When Appie is run with the BlogParser:
+
+    $ appie -s /path/to/directory -d AppieBlogParser
+    
+You will end up with the following build directory:
+
+    ./build/blog/first_post.html
+    ./build/blog/img/first_thumb.jpg
+    ./build/blog/img/first_web.jpg
+    ./build/blog/img/first.jpg
+    ./build/all.json
+
+The all.json file will contain the following:
+
+    {
+        "blog": {
+            "first_post.html": {
+                "tags": [ "tag1", "tag2" ],
+                "title" : "First Post Evah",
+                "summary" : "The usual bullshit",
+                "date": "2016-11-04"
+            },
+            "img": {
+                "first.jpg": { 
+                    "thumb" : "first_thumb.jpg", 
+                    "web": "first_web.jpg", 
+                    "path": "blog/img"
+                }
+            }
+        }
+    }
+
+The blog.md file contains:
+
+    title:   First Post
+    summary: A brief description of my document.
+    Date:    2016-11-04
+    tags: tag1, tag2
+
+    First Post
+    ##########
+    
+    Hello world!
+
+It's important to understand all meta data is fed into the jinja2 template. 
+
+ 
 ## About ##
 
 Appie originated at the [z25 Foundation](http://www.z25.org) where it is 
