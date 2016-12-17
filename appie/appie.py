@@ -111,10 +111,11 @@ class AppieDirParser(object):
                 d[item.name] = parser.parse_file( item.path, item.name, dest_path )
                 d[item.name]['path'] = web_path
                 d[item.name]['mtime'] = item.stat().st_mtime
-                # copy file to dest
-                logging.debug("Copy file {0} to the directory {1}"\
-                                .format(path, dest_path))
-                shutil.copy(item.path, dest_path)
+                # copy file to dest if no content key
+                if not d[item.name].get( 'content' ):
+                    logging.debug("Copy file {0} to the directory {1}"\
+                                    .format(path, dest_path))
+                    shutil.copy(item.path, dest_path)
             else:
                 d[item.name] = prev_dict[item.name]
                 
@@ -169,10 +170,11 @@ class AppieTextileParser(AppieFileParser):
         """
         Matches on files with the extension .textile
         """
+        logging.debug('Matching AppieTextileParser to {0}'.format(name))
         if name.endswith('.textile'):
             return True
 
-    def parse_file(self, path, filename):
+    def parse_file(self, path, filename, dest_path):
         """
         Parses textile files to html.
         
@@ -255,7 +257,6 @@ class Appie(object):
             d = AppieDirParser().parse_dir( src, config["target"], prev )
             final = dict(mergedicts(final, d))
         #return final
-        pprint(final)
         self.save_dict(final, os.path.join(config["target"], 'all.json'))
 
     def save_dict(self, d, filepath):
