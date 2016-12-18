@@ -73,11 +73,26 @@ class AppieMarkdownParser(appie.AppieFileParser):
         """
         Read the file and return the content parsed through markdown
         """
-        return {'content': markdown.markdown(
-                    self.load_file(path),
-                    extensions=['markdown.extensions.tables',
-                                'markdown.extensions.meta']
-                    )}
+        meta, html = self.parse_md(path)
+        meta['content'] = html
+        return meta
+
+    def parse_md(self, file):
+        """
+        Read the file and return the content parsed through markdown
+        """
+        md = markdown.Markdown(
+                    extensions=[
+                        'markdown.extensions.tables',
+                        'markdown.extensions.meta',
+                        'markdown.extensions.codehilite',
+                        'markdown.extensions.toc'
+                        ]
+                    )
+        # generate the html from the .md file
+        html = md.convert(self.load_file(file))
+        meta = md.Meta
+        return meta, html
 
 
 class AppiePNGParser(appie.AppieFileParser):
@@ -241,10 +256,10 @@ class AppieBlogDirParser(appie.AppieDirParser):
     def parse_dir(self, path, dest_path, prev_dict=None):
         prev_dict = prev_dict or {}
         d = {}
-        tpl = self.load_file(os.path.join(path, 'blog.jinja2'))
+        tpl = Template(self.load_file(os.path.join(path, 'blog.jinja2')))
         for item in os.scandir(path):
             # save the relative! path in the buildroot instead of the original
-            web_path = dest_path.split(config['target'])[1][1:]
+            web_path = dest_path.split(appie.config['target'])[1][1:]
             if item.is_dir():
                 # subdirs are parsed as would be done normally
                 d[item.name] = self.parse_subdir(item, dest_path, prev_dict)
@@ -253,7 +268,7 @@ class AppieBlogDirParser(appie.AppieDirParser):
                     # skip the jinja2 template
                     continue
                 # find a parser for this file
-                parser = Appie.match_file_parsers(item.name)
+                parser = appie.Appie.match_file_parsers(item.name)
                 d[item.name] = parser.parse_file(item.path, item.name,
                                                  dest_path)
                 d[item.name]['path'] = web_path
@@ -262,7 +277,11 @@ class AppieBlogDirParser(appie.AppieDirParser):
                     # run markdown parser output through jinja2
                     html = tpl.render(d[item.name])
                     fname, ext = os.path.splitext(item.name)
-                    self.save_file(os.path.join(dest_path, fname + ".html"))
+                    self.save_file(html, os.path.join(dest_path, fname + ".html"))
+                    # rename the key
+                    d[fname + ".html"] = d[item.name]
+                    d.pop(item.name)
+                    continue
                 # copy file to dest if no content key
                 if not d[item.name].get('content') and parser.copyfile:
                     logging.debug("Copy file {0} to the directory {1}"
@@ -284,7 +303,7 @@ class AppieBlogDirParser(appie.AppieDirParser):
         f.close()
         return data
 
-    def save_file(self, path, data, mode='w'):
+    def save_file(self, data, path, mode='w'):
         """
         parse the file and return the content for the dict
 

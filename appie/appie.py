@@ -74,9 +74,9 @@ class AppieDirParser(object):
         
         Returns true if newer
         """
-        if not prev_dict:
-            return True
-        return dirobj.stat().st_mtime > prev_dict.get( dirobj.name )[ 'mtime' ] 
+        if not prev_dict or not prev_dict.get(dirobj.name):
+            return True   # no previous data found so modified
+        return dirobj.stat().st_mtime > prev_dict.get(dirobj.name)[ 'mtime' ] 
 
     def parse_dir(self, path, dest_path, prev_dict=None):
         """
@@ -265,8 +265,11 @@ class Appie(object):
             os.makedirs(self._buildwd)
         except FileExistsError:
             # try to load previous run
-            prev = self.load_dict( os.path.join(self._buildwd, 'all.json' ) )
-        
+            try:
+                prev = self.load_dict( os.path.join(self._buildwd, 'all.json' ) )
+            except FileNotFoundError:
+                prev = None
+
         final = {}
         for src in config["src"]:
             d = AppieDirParser().parse_dir( src, config["target"], prev )
