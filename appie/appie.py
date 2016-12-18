@@ -300,10 +300,7 @@ class Appie(object):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    #pprint.pprint(dir_structure_to_dict('../tests/site_src'))
     config["src"] = '../tests/site_src'
     a = Appie()
     a.add_file_parser(AppieTextileParser())
-    from pprint import pprint
-    pprint(a.parse())#'../tests/site_src'))#, 'site_src'))
-    #a.parse()
+    a.parse()

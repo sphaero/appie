@@ -78,33 +78,35 @@ You will then have a new directory 'build' in your current direcyory with the fo
 The file 'all.json' will contain:
 
     { "home.textile" : {
-            "content": "<h3>Test</h3><p>This is just a test</p>",
-            "path": "",
-            "mtime: "1481920145.5069501"
-        } 
+        "content": "<h3>Test</h3><p>This is just a test</p>",
+        "path": "",
+        "mtime: "1481920145.5069501"
+      },
       "about.textile" : {
         "content": <h3>About</h3><p>What about it</p>",
         "path": "",
         "mtime: "1481920145.5069501",
-      }
+      },
       "files": {
         "report2010.pdf": {
-            "path": "/files", 
-            "mtime": "1481920145.5069501",
+          "path": "/files", 
+          "mtime": "1481920145.5069501",
         },
         "report2009.pdf": {
-            "path": "files",
-            "mtime": "1481920145.5069501"
+          "path": "files",
+          "mtime": "1481920145.5069501"
         }
       },
       "img" : {
         "banner.png": { 
             "thumb" : "banner_thumb.jpg", 
             "web": "banner.jpg", 
-            "path": "img"
-            "mtime": "1481920145.5069501"
+            "path": "img",
+            "mtime": "1481920145.5069501",
+            "mimetype": "image/png",
+            "size": [400,300]
         }
-    }
+      }
     }
     
 ## Built-in webserver
@@ -113,7 +115,7 @@ For your development convenience Appie can also serve from the build directory. 
 
     $ appie -s /path/to/directory -w -p 8000
     Serving on port 8000...     press CTRL-C to quit
-    
+
 ## Blog example
 
 For example we have the following directory contents:
@@ -141,15 +143,20 @@ The all.json file will contain the following:
         "blog": {
             "first_post.html": {
                 "tags": [ "tag1", "tag2" ],
-                "title" : "First Post Evah",
-                "summary" : "The usual bullshit",
-                "date": "2016-11-04"
+                "title" : ["First Post"],
+                "summary" : ["A brief description of my document"],
+                "date": ["2016-11-04"],
+                "mtime": 0,
+                "path": "blog",
+                "content": '<h1 id="first-post">First Post</h1>\n'
+                                        '<p>Hello world!</p>'
             },
             "img": {
                 "first.jpg": { 
                     "thumb" : "first_thumb.jpg", 
                     "web": "first_web.jpg", 
-                    "path": "blog/img"
+                    "path": "blog/img",
+                    ... etc
                 }
             }
         }
@@ -160,7 +167,8 @@ The blog.md file contains:
     title:   First Post
     summary: A brief description of my document.
     Date:    2016-11-04
-    tags: tag1, tag2
+    tags: tag1
+          tag2
 
     First Post
     ##########
@@ -169,7 +177,21 @@ The blog.md file contains:
 
 It's important to understand all meta data is fed into the jinja2 template. 
 
- 
+## Custom Parsers ##
+
+Creating is a custom file parser is very simple. Just inherit the AppieFileParser class and implement a match() method which returns False or True on a filename. Then implement the parse_file() method which returns the dictionary with contents you want. As an example here's the AppieTextile class:
+
+    class AppieTextileParser(AppieFileParser):
+
+        def match(self, name):
+            if name.endswith('.textile'):
+                return True
+    
+        def parse_file(self, path, filename, dest_path):
+            t = textile.textile(self.load_file(path))
+            return { 'content': t }
+    
+
 ## About ##
 
 Appie originated at the [z25 Foundation](http://www.z25.org) where it is 
