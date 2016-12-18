@@ -170,6 +170,7 @@ class AppieJPGParser(appie.AppieFileParser):
                 'md5': 'todo'
                 }
 
+
 class AppieMarkdownToFileParser(appie.AppieFileParser):
     """
     Simple markdown file to html file parser matching on '.md.html' 
@@ -221,3 +222,70 @@ class AppieMarkdownToFileParser(appie.AppieFileParser):
         meta = md.Meta
         return meta, html
 
+
+class AppieBlogDirParser(appie.AppieDirParser):
+    """
+    Matches on a directory named 'blog'. Then runs every .md file
+    with metadata into the blog.jinja2 file to create html files
+    """
+    def match(self, name):
+        if name == 'blog':
+            return True
+    
+    def parse_dir(self, path, dest_path, prev_dict=None):
+        prev_dict = prev_dict or {}
+        d = {}
+        tpl = self.load_file(os.path.join(path, 'blog.jinja2'))
+        for item in os.scandir(path):
+            # save the relative! path in the buildroot instead of the original
+            web_path = dest_path.split(config['target'])[1][1:]
+            if item.is_dir():
+                # subdirs are parsed as would be done normally
+                d[item.name] = self.parse_subdir(item, dest_path, prev_dict)
+            elif self.is_modified( item, prev_dict ):
+                if item.name == "blog.jinja2":
+                    # skip the jinja2 template
+                    continue
+                # find a parser for this file
+                parser = Appie.match_file_parsers(item.name)
+                d[item.name] = parser.parse_file( item.path, item.name, dest_path )
+                d[item.name]['path'] = web_path
+                d[item.name]['mtime'] = item.stat().st_mtime
+                if item.name.endswith(".md"):
+                    # run markdown parser output through jinja2
+                    html = tpl.render( d[item.name] )
+                    fname, ext = os.path.splitext( item.name )
+                    self.save_file(os.path.join(dest_path, fname +".html"))
+                # copy file to dest if no content key
+                if not d[item.name].get( 'content' ) and parser.copyfile:
+                    logging.debug("Copy file {0} to the directory {1}"\
+                                    .format(path, dest_path))
+                    shutil.copy(item.path, dest_path)
+            else:
+                d[item.name] = prev_dict[item.name]
+                
+        return d
+        
+    def load_file(self, path, mode='r'):
+        """
+        parse the file and return the content for the dict
+        
+        :param str file: the path to the file
+        """
+        with open(path, mode, encoding="utf8") as f:
+            data = f.read()
+        f.close()
+        
+        return data
+    
+    def save_file(self, path, data, mode='w'):
+        """
+        parse the file and return the content for the dict
+        
+        :param str file: the path to the file
+        """
+        with open(path, mode, encoding="utf8") as f:
+            f.write(data)
+        f.close()
+        
+        return data

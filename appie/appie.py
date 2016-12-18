@@ -94,24 +94,7 @@ class AppieDirParser(object):
             # save the relative! path in the buildroot instead of the original
             web_path = dest_path.split(config['target'])[1][1:]
             if item.is_dir():
-                new_dest_path = os.path.join(dest_path, item.name)
-                # first create its dir
-                try:
-                    os.makedirs(new_dest_path)
-                except FileExistsError:
-                    pass
-                # find a parser for this dir
-                parser = Appie.match_dir_parsers(item.name)
-                content = parser.parse_dir( item.path, new_dest_path, prev_dict.get( item.name ))
-                # add meta information if the parser returned content
-                if content:
-                    d[item.name] = content
-                    d[item.name]['path'] = web_path
-                    d[item.name]['mtime'] = item.stat().st_mtime
-                else:
-                    # we can remove the dir TODO: does this hold?
-                    # will error if new_dest_path not empty
-                    os.remove(new_dest_path)
+                d[item.name] = self.parse_subdir( item, dest_path, prev_dict, web_path)
             elif self.is_modified( item, prev_dict ):
                 # find a parser for this file
                 parser = Appie.match_file_parsers(item.name)
@@ -127,6 +110,27 @@ class AppieDirParser(object):
                 d[item.name] = prev_dict[item.name]
                 
         return d
+
+    def parse_subdir(self, diritem, dest_path, prev_dict, web_path):
+        ret = {}
+        new_dest_path = os.path.join(dest_path, diritem.name)
+        # first create its dir
+        try:
+            os.makedirs(new_dest_path)
+        except FileExistsError:
+            pass
+        # find a parser for this dir
+        parser = Appie.match_dir_parsers(diritem.name)
+        content = parser.parse_dir( diritem.path, new_dest_path, prev_dict.get( diritem.name ))
+        # add meta information if the parser returned content
+        if content:
+            content['path'] = web_path
+            content['mtime'] = diritem.stat().st_mtime
+        else:
+            # if not we can remove the dir       TODO: does this hold?
+            # will error if new_dest_path not empty
+            os.remove(new_dest_path)
+        return content
 
 
 class AppieFileParser(object):
