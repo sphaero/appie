@@ -102,9 +102,16 @@ class AppieDirParser(object):
                     pass
                 # find a parser for this dir
                 parser = Appie.match_dir_parsers(item.name)
-                d[item.name] = parser.parse_dir( item.path, new_dest_path, prev_dict.get( item.name ))
-                d[item.name]['path'] = web_path
-                d[item.name]['mtime'] = item.stat().st_mtime
+                content = parser.parse_dir( item.path, new_dest_path, prev_dict.get( item.name ))
+                # add meta information if the parser returned content
+                if content:
+                    d[item.name] = content
+                    d[item.name]['path'] = web_path
+                    d[item.name]['mtime'] = item.stat().st_mtime
+                else:
+                    # we can remove the dir TODO: does this hold?
+                    # will error if new_dest_path not empty
+                    os.remove(new_dest_path)
             elif self.is_modified( item, prev_dict ):
                 # find a parser for this file
                 parser = Appie.match_file_parsers(item.name)
@@ -112,7 +119,7 @@ class AppieDirParser(object):
                 d[item.name]['path'] = web_path
                 d[item.name]['mtime'] = item.stat().st_mtime
                 # copy file to dest if no content key
-                if not d[item.name].get( 'content' ):
+                if not d[item.name].get( 'content' ) and parser.copyfile:
                     logging.debug("Copy file {0} to the directory {1}"\
                                     .format(path, dest_path))
                     shutil.copy(item.path, dest_path)
@@ -127,6 +134,10 @@ class AppieFileParser(object):
     Appie default file parser. Loads the content of a file if
     it starts with _ (underscore).
     """
+    def __init__(self, *args, **kwargs):
+        self.copyfile = True                # use the flag to tell the dirparser
+                                            # to copy the file or not
+
     def match(self, name):
         """
         Matches on files with the extension .textile
@@ -149,13 +160,13 @@ class AppieFileParser(object):
             return { 'content': self.load_file(path) }   # no other parser matches but we only want to load if starting with _
         return {}
         
-    def load_file(self, path):
+    def load_file(self, path, mode='r'):
         """
         parse the file and return the content for the dict
         
         :param str file: the path to the file
         """
-        with open(path, 'r', encoding="utf8") as f:
+        with open(path, mode, encoding="utf8") as f:
             data = f.read()
         f.close()
         

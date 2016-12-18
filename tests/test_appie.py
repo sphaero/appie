@@ -123,22 +123,28 @@ class AppieTest(unittest.TestCase):
         self.zero_mtime(j)
         self.assertDictEqual(jstruct, j)
 
-    @unittest.skip('bla')
     def test_markdown(self):
         self.a.add_file_parser(appie.AppieMarkdownParser())
         # run appie
         self.a.parse()
         with open("./build/all.json") as f:
             j = json.load(f)
-        self.assertEqual(j['test.md'], "<h1>Markdown</h1>\n<p>Test</p>")
+        # first zero all mtime keys
+        self.zero_mtime(j)
+        self.assertEqual(j['test.md'], {
+                            'content' : "<h1>Markdown</h1>\n<p>Test</p>",
+                            'path': '',
+                            'mtime': 0, 
+                            })
 
-    @unittest.skip('bla')
     def test_markdown_to_file(self):
         self.a.add_file_parser(appie.AppieMarkdownToFileParser())
         # run appie
         self.a.parse()
         with open("./build/all.json") as f:
             j = json.load(f)
+        # first zero all mtime keys
+        self.zero_mtime(j)
         self.assertEqual(j['blog.md.html'], {
                 'title' : ['My Document'],
                 'summary' : ['A brief description of my document.'],
@@ -146,7 +152,9 @@ class AppieTest(unittest.TestCase):
                 'date' : ['October 2, 2007'],
                 'blank-value' : [''],
                 'abstract' : '<h1>A heading</h1>\n<p>This is the first paragraph of the document.</p>',
-                'base_url' : ['http://example.com']
+                'base_url' : ['http://example.com'],
+                'path': "",
+                'mtime': 0
             })
         self.assertTrue(os.path.isfile("./build/blog.md.html"))
         with open("./build/blog.md.html") as f:
@@ -183,7 +191,6 @@ class AppieTest(unittest.TestCase):
         self.assertTrue(img.width <= 384)
         self.assertTrue(img.height <= 216)
 
-    @unittest.skip('bla')
     def test_jpgparser(self):
         import PIL
         self.a.add_file_parser(appie.AppieJPGParser())
@@ -191,9 +198,16 @@ class AppieTest(unittest.TestCase):
         self.a.parse()
         with open("./build/all.json") as f:
             j = json.load(f)
+            
+        # but first zero all mtime keys
+        self.zero_mtime(j)
+
         self.assertEqual(j['img']['spacecat.jpg'], {
                                         'md5': 'todo',
                                         'path': 'img',
+                                        'mtime': 0,
+                                        'size': [1920,1080],
+                                        'mimetype': 'image/jpg',
                                         'web': 'spacecat_web.jpg',
                                         'thumb': 'spacecat_thumb.jpg'
                                         })
