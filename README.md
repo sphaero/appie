@@ -1,11 +1,11 @@
-g# Appie
+# Appie
 
 [![Build Status](https://travis-ci.org/sphaero/appie.svg?branch=master)](https://travis-ci.org/sphaero/appie)
 
 Appie is a simple static generator for dynamic websites. Dynamic websites? 
 Yes! Appie's primary focus is on providing all information of files residing
 in your website's directory. As from a HTML file you can not see what's available 
-on your webserver Appie will provide a JSON fihttp://stackoverflow.com/questions/23117717/python-super-init-inheritancele containing exactly this. 
+on your webserver Appie will provide a JSON file containing exactly this. 
 From this the HTML file, using javascript, can figure things out. 
 By matching to certain filenames the JSON file can be filled with 
 specific data. For example a file with the .textile extension is parsed into HTML. 
@@ -29,7 +29,7 @@ Just use Pip:
 
     pip install https://github.com/sphaero/appie/archive/master.zip
 
-*Appie is developed for Python3! It might work on Python2 but please stop using Python2! Unittest are also only testing Python>3.3.*
+*Appie is developed for Python3! It might work on Python2 but please move on! Unittest are also only testing Python>3.3.*
 
 ## Extensions
 
@@ -45,9 +45,16 @@ Some non default extensions:
 - *.md.html: simple markdown file to html file parser matching on '.md.html' 
 extensions. 
 - blog/: a directory named blog will be parsed as a blog. Blog entries consist
-of a markdown file (.md) containing metadata. The metadata will be fed to the 
-blog.jinja2 file which generates static html files. The json will contain 
-all blog entries and metadata. See below for an example
+of a markdown file (.md) containing metadata. The metadata and html content 
+will be fed to the blog.jinja2 file which generates static html files. The 
+json will contain all blog entries and metadata. See below for an example.
+
+## Built-in webserver
+
+For your development convenience Appie can also serve from the build directory. If you run appie with the -w flag it will serve the generated files through a HTTP server. By default this HTTP server runs on port 8000.
+
+    $ appie -s /path/to/directory -w -p 8000
+    Serving on port 8000...     press CTRL-C to quit
 
 ## Example
 
@@ -109,12 +116,6 @@ The file 'all.json' will contain:
       }
     }
     
-## Built-in webserver
-
-For your development convenience Appie can also serve from the build directory. If you run appie with the -w flag it will serve the generated files through a HTTP server. By default this HTTP server runs on port 8000.
-
-    $ appie -s /path/to/directory -w -p 8000
-    Serving on port 8000...     press CTRL-C to quit
 
 ## Blog example
 
@@ -175,7 +176,7 @@ The blog.md file contains:
     
     Hello world!
 
-It's important to understand all meta data is fed into the jinja2 template. 
+It's important to understand all meta data is fed into the jinja2 template. Also note that the first_post.md file ends up in the json dictionary as first_post.html!
 
 ## Custom Parsers ##
 
@@ -191,6 +192,9 @@ Creating is a custom file parser is very simple. Just inherit the AppieFileParse
             t = textile.textile(self.load_file(path))
             return { 'content': t }
     
+Note that Appie expects the parser to return a dictionary with any content as the 'content' key. You can decide yourself if you want Appie to copy the original file or not by setting the self.copyfile boolean (default True) of your class.
+
+To create a directory parser involves more work. You'll need to inherit the AppieDirParser class and implement the match() and parse_dir() methods. Have a look at the AppieBlogDirParser class to see an example.
 
 ## About ##
 

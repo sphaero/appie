@@ -54,6 +54,7 @@ class BlogTest(unittest.TestCase):
         #self.assertTrue(os.path.isdir("./build/img"))
         # test if file
         self.assertTrue(os.path.isfile("./build/blog/first_post.html"))
+        self.assertFalse(os.path.isfile("./build/blog/first_post.md"))
         #self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
         self.assertTrue(os.path.isfile("./build/all.json"))
         # test contents
