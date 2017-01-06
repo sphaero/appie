@@ -13,7 +13,7 @@ setup(
         packages=['appie'],
         scripts=['bin/appie'],
         include_package_data=True,
-        requires=['textile', 'markdown', 'Pillow'],
-        install_requires=['textile', 'markdown', 'Pillow'],
+        requires=['textile', 'markdown', 'Pillow', 'jinja2'],
+        install_requires=['textile', 'markdown', 'Pillow', 'jinja2'],
 )
 
