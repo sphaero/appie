@@ -56,6 +56,10 @@ For your development convenience Appie can also serve from the build directory. 
     $ appie -s /path/to/directory -w -p 8000
     Serving on port 8000...     press CTRL-C to quit
 
+### Filesystem watching
+
+When the webserver is running it will also monitor filesystem events in the source directories. It will reparse if a file is modified. (Linux only!)
+
 ## Example
 
 For example we have the following directory contents:

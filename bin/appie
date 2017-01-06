@@ -68,15 +68,85 @@ if __name__ == '__main__':
         import http.server
         import socketserver
         import os
-        os.chdir(appie.config['target'])
+        import select
+        import pyinotify
+        import fcntl
+        import os
+        import array
+        import struct
+        import pyinotify
+        import termios
+        
+        # setup inotify
+        i = pyinotify.INotifyWrapper.create()
+        ifd = i._inotify_init()
+        # add src directory to watch
+        iwds = []
+        def setup_inotify_dir(dir):
+            iwds.append(i.inotify_add_watch(ifd, dir, \
+                        pyinotify.IN_DELETE | pyinotify.IN_CLOSE_WRITE \
+                        | pyinotify.IN_MOVED_FROM | pyinotify.IN_MOVED_TO ))
 
+        for src in appie.config['src']:
+            for dir, file, filename in os.walk(src):
+                setup_inotify_dir(dir)
+
+        # setup http server
+        cwd = os.getcwd()
+        os.chdir(appie.config['target'])
         PORT = args.get('port')
         Handler = http.server.SimpleHTTPRequestHandler
         httpd = socketserver.TCPServer(("", PORT), Handler)
         httpd.allow_reuse_address = True
+        
+        # setup filesystem watches
+        def handle_inotify():
+            buf = array.array('i', [0])
+            if fcntl.ioctl(ifd, termios.FIONREAD, buf, 1) == -1: # get length of buffer
+                logger.error('some ioctl -1 error')
+                running = False
+                return
+            #print( buf )
+            length = buf[0]
+            # read data
+            # todo we should loop over the data!
+            recv = os.read(ifd, length)
+            #print("handle_inotify: recveived length {0}".format(len(recv)))
+            needle = 0
+            while needle < length:
+                #print("needle at {0}".format(needle))
+                # see inotify.h
+                # wd __s32 signed 32bit integer
+                # cookie __u32 unsigned 32 bit int
+                # len __u32 unsigned 32 bit int
+                # name char possible name
+                wd, mask, cookie, data_length = struct.unpack('iIII', recv[needle:needle+16])
+                if wd not in iwds:
+                    print("watch descriptor doesn't match: %d is not %d" %(wd, iwd))
+                    return
+                #print(mask, cookie, data_length)
+                name, = struct.unpack('%ds' %data_length, recv[needle+16:needle+16+data_length])
+                needle += 16+data_length
+                print( "received filesystem event on {0}".format(name.decode('utf-8')) )
+
+            print("Appie reparsing")
+            os.chdir(cwd)   # back to original working dir
+            a.parse()
+            os.chdir(appie.config['target']) # to http root dir
+
         print("Serving on port {0}...     press CTRL-C to quit".format(PORT))
         # Serve until process is killed
+        #httpd.__is_shut_down.clear()
         try:
-            httpd.serve_forever()
+            while not httpd._BaseServer__shutdown_request:
+                r,w,e = select.select( [httpd, ifd], [], [], 1.)
+                if httpd in r:
+                    httpd._handle_request_noblock()
+                if ifd in r:
+                    handle_inotify()
+                    
         except (KeyboardInterrupt, SystemExit):
             print("\n")
+        finally:
+            httpd._BaseServer__shutdown_request = False
+            #httpd.__is_shut_down.set()
