@@ -163,7 +163,6 @@ class AppieTest(unittest.TestCase):
 
     def test_pngparser(self):
         import PIL
-        print( dir(appie) )
         self.a.add_file_parser(appie.AppiePNGParser())
         # run appie
         self.a.parse()
@@ -224,59 +223,88 @@ class AppieTest(unittest.TestCase):
         self.assertTrue(img.height <= 216)
 
 
-#class AppieMultiTest(unittest.TestCase):
+class AppieMultiTest(unittest.TestCase):
 
-    #def setUp(self, *args, **kwargs):
-        #self.maxDiff = None
-        #appie.config['src'] = ["./tests/site_src", "./tests/site_src2"]
-        #self.sitesrc = appie.config['src']
-        #self.a = appie.Appie()
+    def setUp(self, *args, **kwargs):
+        self.maxDiff = None
+        appie.config['src'] = ["./tests/site_src", "./tests/site_src2"]
+        self.sitesrc = appie.config['src']
+        self.a = appie.Appie()
 
-    #def tearDown(self):
-        #try:
-            #shutil.rmtree("./build")
-        #except FileNotFoundError:
-            #pass
+    def tearDown(self):
+        try:
+            shutil.rmtree("./build")
+        except FileNotFoundError:
+            pass
 
-    #def test_multisrc(self):
-        ## run appie
-        #self.a.parse()
-        ## test site build dir structure
-        #self.assertTrue(os.path.isdir("./build"))
-        #self.assertTrue(os.path.isdir("./build/files"))
-        #self.assertTrue(os.path.isdir("./build/files2"))
-        #self.assertTrue(os.path.isdir("./build/img"))
-        ## test if file
-        #self.assertTrue(os.path.isfile("./build/files/report2008.pdf"))
-        #self.assertTrue(os.path.isfile("./build/files/report2009.pdf"))
-        #self.assertTrue(os.path.isfile("./build/files/report2010.pdf"))
-        #self.assertTrue(os.path.isfile("./build/files/report2011.pdf"))
-        #self.assertTrue(os.path.isfile("./build/files2/report2012.pdf"))
-        #self.assertTrue(os.path.isfile("./build/blog.md.html"))
-        #self.assertFalse(os.path.exists("./build/_test"))
-        #self.assertTrue(os.path.isfile("./build/img/spacecat.png"))
+    def zero_mtime(self, d):
+        for k,v in d.items():
+            if isinstance(v, dict):
+                r = self.zero_mtime(v)
+            elif k == 'mtime':
+                d[k] = 0
+
+    def test_multisrc(self):
+        # run appie
+        self.a.parse()
+        # test site build dir structure
+        self.assertTrue(os.path.isdir("./build"))
+        self.assertTrue(os.path.isdir("./build/files"))
+        self.assertTrue(os.path.isdir("./build/files2"))
+        self.assertTrue(os.path.isdir("./build/img"))
+        # test if file
+        self.assertTrue(os.path.isfile("./build/files/report2008.pdf"))
+        self.assertTrue(os.path.isfile("./build/files/report2009.pdf"))
+        self.assertTrue(os.path.isfile("./build/files/report2010.pdf"))
+        self.assertTrue(os.path.isfile("./build/files/report2011.pdf"))
+        self.assertTrue(os.path.isfile("./build/files2/report2012.pdf"))
+        self.assertTrue(os.path.isfile("./build/blog.md.html"))
+        self.assertFalse(os.path.exists("./build/_test"))
+        self.assertTrue(os.path.isfile("./build/img/spacecat.png"))
+        self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
+        self.assertTrue(os.path.isfile("./build/img/img/spacecat.png"))
         #self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
-        #self.assertTrue(os.path.isfile("./build/img/img/spacecat.png"))
-        ##self.assertTrue(os.path.isfile("./build/img/spacecat.jpg"))
-        ##self.assertTrue(os.path.isfile("./build/img/spacecat_thumb.jpg"))
-        #self.assertTrue(os.path.isfile("./build/all.json"))
-        ## test contents
-        #with open("./build/all.json") as f:
-            #j = json.load(f)
-        #jstruct = {'img': 
-                    #{'img': {'spacecat.png': 'img/img'}, 
-                    #'spacecat.png': 'img', 'spacecat.jpg': 'img'}, 
-                    #'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 
-                    #'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 
-                    #'files': {'report2009.pdf': 'files', 'report2008.pdf': 'files', 'report2011.pdf': 'files', 'report2010.pdf': 'files'}, 
-                    #'files2': {'report2012.pdf': 'files2'}, 
-                    #'_test': 'Testing2\n', 
-                    #'test.md': '', 'blog.md.html': '',
-                    #'test2.md': '', 'blog.md.html': ''}
-        #self.assertDictEqual(jstruct, j)
+        #self.assertTrue(os.path.isfile("./build/img/spacecat_thumb.jpg"))
+        self.assertTrue(os.path.isfile("./build/all.json"))
+        # test contents
+        with open("./build/all.json") as f:
+            j = json.load(f)
+        self.zero_mtime(j)
+        jstruct = { 'about.textile': 
+                        {'mtime': 0, 'path': ''}, 
+                        'home.textile': {'mtime': 0, 'path': ''}, 
+                        'blog.md.html': {'mtime': 0, 'path': ''}, 
+                        'files': 
+                            {'path': '', 
+                            'mtime': 0, 
+                            'report2008.pdf': {'mtime': 0, 'path': 'files'}, 
+                            'report2010.pdf': {'mtime': 0, 'path': 'files'}, 
+                            'report2009.pdf': {'mtime': 0, 'path': 'files'}, 
+                            'report2011.pdf': {'mtime': 0, 'path': 'files'}
+                            }, 
+                        'img': 
+                            {'path': '', 
+                            'mtime': 0, 
+                            'spacecat.jpg': {'mtime': 0, 'path': 'img'}, 
+                            'spacecat.png': {'mtime': 0, 'path': 'img'}, 
+                            'img': {'path': 'img',
+                                    'mtime': 0, 
+                                    'spacecat.png': {'mtime': 0, 'path': 'img/img'} 
+                                    }
+                            }, 
+                            '_test': {'mtime': 0, 'content': 'Testing2\n', 'path': ''}, 
+                            'test.md': {'mtime': 0, 'path': ''}, 
+                            'files2': 
+                                {'report2012.pdf': {'mtime': 0, 'path': 'files2'}, 
+                                'mtime': 0, 
+                                'path': ''
+                                }, 
+                            'test2.md': {'mtime': 0, 'path': ''}
+                        }
+        self.assertDictEqual(jstruct, j)
 
 
 import logging
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()
