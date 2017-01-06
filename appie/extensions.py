@@ -25,6 +25,13 @@ from html.parser import HTMLParser
 from jinja2 import Template
 from PIL import Image
 
+# for pre 3.5 python versions 
+try:
+    os.scandir
+except AttributeError:
+    import scandir
+    os.scandir = scandir.scandir
+
 logger = logging.getLogger(__name__)
 
 

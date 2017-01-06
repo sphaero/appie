@@ -25,6 +25,13 @@ import logging
 
 import pprint
 
+# for pre 3.5 python versions 
+try:
+    os.scandir
+except AttributeError:
+    import scandir
+    os.scandir = scandir.scandir
+
 logger = logging.getLogger(__name__)
 
 config = {
