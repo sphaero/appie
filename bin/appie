@@ -92,6 +92,7 @@ if __name__ == '__main__':
         PORT = args.get('port')
         Handler = http.server.SimpleHTTPRequestHandler
         httpd = socketserver.TCPServer(("", PORT), Handler)
+        httpd.allow_reuse_address = True
         
         def handle_inotify():
             buf = array.array('i', [0])
