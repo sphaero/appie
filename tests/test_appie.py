@@ -4,12 +4,13 @@ import shutil
 import os
 import json
 import appie
+import appie.extensions
 
 if sys.version.startswith('3'):
     unicode = str
 
 
-class AppieTest(object):
+class AppieTest(unittest.TestCase):
 
     def setUp(self, *args, **kwargs):
         self.maxDiff = None
@@ -23,28 +24,81 @@ class AppieTest(object):
         except FileNotFoundError:
             pass
 
+    def zero_mtime(self, d):
+        for k,v in d.items():
+            if isinstance(v, dict):
+                r = self.zero_mtime(v)
+            elif k == 'mtime':
+                d[k] = 0
+
     def test_appie(self):
-        # test site src dir structure
-        dstruct = {'files': {
-                    'report2008.pdf': 'file://{0}/files'.format(self.sitesrc), 
-                    'report2009.pdf': 'file://{0}/files'.format(self.sitesrc), 
-                    'report2010.pdf': 'file://{0}/files'.format(self.sitesrc)
-                }, 
-                'img': {
-                    'img': {'spacecat.png': 'file://{0}/img/img'.format(self.sitesrc)
-                    }, 
-                    'spacecat.png': 'file://{0}/img'.format(self.sitesrc),
-                    'spacecat.jpg': 'file://{0}/img'.format(self.sitesrc)
-                }, 
-                'home.textile': 'file://{0}'.format(self.sitesrc),
-                'blog.md.html': 'file://{0}'.format(self.sitesrc),
-                'about.textile': 'file://{0}'.format(self.sitesrc),
-                '_test': 'file://{0}'.format(self.sitesrc),
-                'test.md': 'file://{0}'.format(self.sitesrc)
-            }
-        d = appie.dir_structure_to_dict(self.sitesrc)
-        self.assertDictEqual(appie.dir_structure_to_dict(self.sitesrc), dstruct)
+        jstruct = { '_test': {
+                        'content': 'Testing\n', 
+                        'mtime': 0, 
+                        'path': ''
+                    },
+                    'about.textile': {
+                        'content': '\t<h3>About</h3>\n'
+                              '\n'
+                              '\t<p>What about it</p>\n'
+                              '\n'
+                              '\t<p><img alt="" src="img/spacecat.jpg" /></p>',
+                        'mtime': 0,
+                        'path': ''
+                    },
+                    'blog.md.html': {
+                        'mtime': 0, 
+                        'path': ''
+                    },
+                    'files': {
+                        'mtime': 0,
+                        'path': '',
+                        'report2008.pdf': {
+                            'mtime': 0, 
+                            'path': 'files'
+                        },
+                        'report2009.pdf': {
+                            'mtime': 0, 
+                            'path': 'files'
+                        },
+                        'report2010.pdf': {
+                            'mtime': 0, 
+                            'path': 'files'
+                        }
+                    },
+                    'home.textile': {
+                        'content': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>',
+                        'mtime': 0,
+                        'path': ''
+                    },
+                    'img': {
+                        'img': {
+                            'mtime': 0,
+                            'path': 'img',
+                            'spacecat.png': {
+                                'mtime': 0,
+                                'path': 'img/img'
+                            }
+                        },  
+                        'mtime': 0,
+                        'path': '',
+                        'spacecat.jpg': {
+                            'mtime': 0, 
+                            'path': 'img'
+                        },
+                        'spacecat.png': {
+                            'mtime': 0, 
+                            'path': 'img'
+                        }
+                    },
+                    'test.md': {
+                        'mtime': 0, 
+                        'path': ''
+                    }
+                }
+
         # run appie
+        self.a.add_file_parser( appie.AppieTextileParser() )
         self.a.parse()
         # test site build dir structure
         self.assertTrue(os.path.isdir("./build"))
@@ -65,7 +119,8 @@ class AppieTest(object):
         # test contents
         with open("./build/all.json") as f:
             j = json.load(f)
-        jstruct = {'img': {'img': {'spacecat.png': 'img/img'}, 'spacecat.png': 'img', 'spacecat.jpg': 'img'}, 'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 'files': {'report2009.pdf': 'files', 'report2008.pdf': 'files', 'report2010.pdf': 'files'}, '_test': 'Testing\n', 'test.md': '', 'blog.md.html': ''}
+        # but first zero all mtime keys
+        self.zero_mtime(j)
         self.assertDictEqual(jstruct, j)
 
     def test_markdown(self):
@@ -74,7 +129,13 @@ class AppieTest(object):
         self.a.parse()
         with open("./build/all.json") as f:
             j = json.load(f)
-        self.assertEqual(j['test.md'], "<h1>Markdown</h1>\n<p>Test</p>")
+        # first zero all mtime keys
+        self.zero_mtime(j)
+        self.assertEqual(j['test.md'], {
+                            'content' : '<h1 id="markdown">Markdown</h1>\n<p>Test</p>',
+                            'path': '',
+                            'mtime': 0, 
+                            })
 
     def test_markdown_to_file(self):
         self.a.add_file_parser(appie.AppieMarkdownToFileParser())
@@ -82,6 +143,8 @@ class AppieTest(object):
         self.a.parse()
         with open("./build/all.json") as f:
             j = json.load(f)
+        # first zero all mtime keys
+        self.zero_mtime(j)
         self.assertEqual(j['blog.md.html'], {
                 'title' : ['My Document'],
                 'summary' : ['A brief description of my document.'],
@@ -89,7 +152,9 @@ class AppieTest(object):
                 'date' : ['October 2, 2007'],
                 'blank-value' : [''],
                 'abstract' : '<h1>A heading</h1>\n<p>This is the first paragraph of the document.</p>',
-                'base_url' : ['http://example.com']
+                'base_url' : ['http://example.com'],
+                'path': "",
+                'mtime': 0
             })
         self.assertTrue(os.path.isfile("./build/blog.md.html"))
         with open("./build/blog.md.html") as f:
@@ -103,9 +168,13 @@ class AppieTest(object):
         self.a.parse()
         with open("./build/all.json") as f:
             j = json.load(f)
+        self.zero_mtime(j)
         self.assertEqual(j['img']['spacecat.png'], {
                                         'md5': 'todo',
                                         'path': 'img',
+                                        'mimetype': 'image/png',
+                                        'mtime': 0,
+                                        'size': [598, 335],
                                         'web': 'spacecat_web.jpg',
                                         'thumb': 'spacecat_thumb.jpg'
                                         })
@@ -128,9 +197,16 @@ class AppieTest(object):
         self.a.parse()
         with open("./build/all.json") as f:
             j = json.load(f)
+            
+        # but first zero all mtime keys
+        self.zero_mtime(j)
+
         self.assertEqual(j['img']['spacecat.jpg'], {
                                         'md5': 'todo',
                                         'path': 'img',
+                                        'mtime': 0,
+                                        'size': [1920,1080],
+                                        'mimetype': 'image/jpg',
                                         'web': 'spacecat_web.jpg',
                                         'thumb': 'spacecat_thumb.jpg'
                                         })
@@ -161,6 +237,13 @@ class AppieMultiTest(unittest.TestCase):
         except FileNotFoundError:
             pass
 
+    def zero_mtime(self, d):
+        for k,v in d.items():
+            if isinstance(v, dict):
+                r = self.zero_mtime(v)
+            elif k == 'mtime':
+                d[k] = 0
+
     def test_multisrc(self):
         # run appie
         self.a.parse()
@@ -186,16 +269,38 @@ class AppieMultiTest(unittest.TestCase):
         # test contents
         with open("./build/all.json") as f:
             j = json.load(f)
-        jstruct = {'img': 
-                    {'img': {'spacecat.png': 'img/img'}, 
-                    'spacecat.png': 'img', 'spacecat.jpg': 'img'}, 
-                    'about.textile': '\t<h3>About</h3>\n\n\t<p>What about it</p>\n\n\t<p><img alt="" src="img/spacecat.jpg" /></p>', 
-                    'home.textile': '\t<h1>Test</h1>\n\n\t<p>This is just a test</p>', 
-                    'files': {'report2009.pdf': 'files', 'report2008.pdf': 'files', 'report2011.pdf': 'files', 'report2010.pdf': 'files'}, 
-                    'files2': {'report2012.pdf': 'files2'}, 
-                    '_test': 'Testing2\n', 
-                    'test.md': '', 'blog.md.html': '',
-                    'test2.md': '', 'blog.md.html': ''}
+        self.zero_mtime(j)
+        jstruct = { 'about.textile': 
+                        {'mtime': 0, 'path': ''}, 
+                        'home.textile': {'mtime': 0, 'path': ''}, 
+                        'blog.md.html': {'mtime': 0, 'path': ''}, 
+                        'files': 
+                            {'path': '', 
+                            'mtime': 0, 
+                            'report2008.pdf': {'mtime': 0, 'path': 'files'}, 
+                            'report2010.pdf': {'mtime': 0, 'path': 'files'}, 
+                            'report2009.pdf': {'mtime': 0, 'path': 'files'}, 
+                            'report2011.pdf': {'mtime': 0, 'path': 'files'}
+                            }, 
+                        'img': 
+                            {'path': '', 
+                            'mtime': 0, 
+                            'spacecat.jpg': {'mtime': 0, 'path': 'img'}, 
+                            'spacecat.png': {'mtime': 0, 'path': 'img'}, 
+                            'img': {'path': 'img',
+                                    'mtime': 0, 
+                                    'spacecat.png': {'mtime': 0, 'path': 'img/img'} 
+                                    }
+                            }, 
+                            '_test': {'mtime': 0, 'content': 'Testing2\n', 'path': ''}, 
+                            'test.md': {'mtime': 0, 'path': ''}, 
+                            'files2': 
+                                {'report2012.pdf': {'mtime': 0, 'path': 'files2'}, 
+                                'mtime': 0, 
+                                'path': ''
+                                }, 
+                            'test2.md': {'mtime': 0, 'path': ''}
+                        }
         self.assertDictEqual(jstruct, j)
 
 

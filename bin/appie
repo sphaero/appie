@@ -73,6 +73,7 @@ if __name__ == '__main__':
         PORT = args.get('port')
         Handler = http.server.SimpleHTTPRequestHandler
         httpd = socketserver.TCPServer(("", PORT), Handler)
+        httpd.allow_reuse_address = True
         print("Serving on port {0}...     press CTRL-C to quit".format(PORT))
         # Serve until process is killed
         try:
