@@ -4,7 +4,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-requires=['textile', 'markdown', 'Pillow', 'jinja2']
+requires=['textile', 'markdown', 'Pillow', 'jinja2', 'pyinotify']
 if sys.version_info.minor < 5 and sys.version_info.major > 2 :
     requires.append( 'scandir' )
 
