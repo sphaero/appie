@@ -1,11 +1,16 @@
+import sys
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
+requires=['textile', 'markdown', 'Pillow', 'jinja2']
+if sys.version_info.minor < 5 and sys.version_info.major > 2 :
+    requires.append( 'scandir' )
+
 setup(
         name='appie',
-        version='0.5',
+        version='0.6',
         description='Static generator for dynamic websites',
         author='Arnaud Loonstra',
         author_email='arnaud@sphaero.org',
@@ -13,7 +18,7 @@ setup(
         packages=['appie'],
         scripts=['bin/appie'],
         include_package_data=True,
-        requires=['textile', 'markdown', 'Pillow', 'jinja2'],
-        install_requires=['textile', 'markdown', 'Pillow', 'jinja2'],
+        requires=requires,
+        install_requires=requires,
 )
 
