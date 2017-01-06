@@ -132,7 +132,7 @@ class AppieTest(unittest.TestCase):
         # first zero all mtime keys
         self.zero_mtime(j)
         self.assertEqual(j['test.md'], {
-                            'content' : "<h1>Markdown</h1>\n<p>Test</p>",
+                            'content' : '<h1 id="markdown">Markdown</h1>\n<p>Test</p>',
                             'path': '',
                             'mtime': 0, 
                             })
