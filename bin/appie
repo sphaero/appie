@@ -76,6 +76,7 @@ if __name__ == '__main__':
         import struct
         import pyinotify
         import termios
+        import time
         
         # setup inotify
         i = pyinotify.INotifyWrapper.create()
@@ -96,11 +97,13 @@ if __name__ == '__main__':
         os.chdir(appie.config['target'])
         PORT = args.get('port')
         Handler = http.server.SimpleHTTPRequestHandler
+        socketserver.TCPServer.allow_reuse_address=True
         httpd = socketserver.TCPServer(("", PORT), Handler)
-        httpd.allow_reuse_address = True
         
         # setup filesystem watches
+        reparse = False
         def handle_inotify():
+            global reparse
             buf = array.array('i', [0])
             if fcntl.ioctl(ifd, termios.FIONREAD, buf, 1) == -1: # get length of buffer
                 logger.error('some ioctl -1 error')
@@ -128,11 +131,7 @@ if __name__ == '__main__':
                 name, = struct.unpack('%ds' %data_length, recv[needle+16:needle+16+data_length])
                 needle += 16+data_length
                 print( "received filesystem event on {0}".format(name.decode('utf-8')) )
-
-            print("Appie reparsing")
-            os.chdir(cwd)   # back to original working dir
-            a.parse()
-            os.chdir(appie.config['target']) # to http root dir
+                reparse = True
 
         print("Serving on port {0}...     press CTRL-C to quit".format(PORT))
         # Serve until process is killed
@@ -143,8 +142,16 @@ if __name__ == '__main__':
                 if httpd in r:
                     httpd._handle_request_noblock()
                 if ifd in r:
+                    time.sleep(0.1) #give some time for more fs events to disperse
                     handle_inotify()
-                    
+                    print(reparse)
+                if reparse:
+                    print("Appie reparsing")
+                    os.chdir(cwd)   # back to original working dir
+                    a.parse()
+                    os.chdir(appie.config['target']) # to http root dir
+                    reparse = False
+
         except (KeyboardInterrupt, SystemExit):
             print("\n")
         finally:

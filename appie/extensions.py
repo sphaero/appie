@@ -72,8 +72,8 @@ class AppieMarkdownParser(appie.AppieFileParser):
     """
     Simple markdown file to html parser
     """
-    def match(self, name):
-        if name.endswith(".md"):
+    def match(self, path, filename):
+        if filename.endswith(".md"):
             return True
 
     def parse_file(self, path, filename, dest_path):
@@ -114,8 +114,8 @@ class AppiePNGParser(appie.AppieFileParser):
         self.jpg_size = appie.config.get('jpg_size', (1280, 720))
         self.thumb_size = appie.config.get('thumb_size', (384, 216))
 
-    def match(self, name):
-        if name.endswith('.png'):
+    def match(self, path, filename):
+        if filename.endswith('.png'):
             return True
         return False
 
@@ -163,8 +163,8 @@ class AppieJPGParser(appie.AppieFileParser):
         self.jpg_size = appie.config.get('jpg_size', (1280, 720))
         self.thumb_size = appie.config.get('thumb_size', (384, 216))
 
-    def match(self, name):
-        if name.endswith('.jpg'):
+    def match(self, path, filename):
+        if filename.endswith('.jpg'):
             return True
         return False
 
@@ -218,8 +218,8 @@ class AppieMarkdownToFileParser(appie.AppieFileParser):
         else:
             self.match_ext = match_extension
 
-    def match(self, name):
-        if name.endswith(self.match_ext):
+    def match(self, path, filename):
+        if filename.endswith(self.match_ext):
             return True
 
     def parse_file(self, path, filename, dest_path):
@@ -256,8 +256,8 @@ class AppieBlogDirParser(appie.AppieDirParser):
     Matches on a directory named 'blog'. Then runs every .md file
     with metadata into the blog.jinja2 file to create html files
     """
-    def match(self, name):
-        if name == 'blog':
+    def match(self, path, filename):
+        if filename == 'blog':
             return True
 
     def parse_dir(self, path, dest_path, prev_dict=None):

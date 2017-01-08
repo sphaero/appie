@@ -67,23 +67,23 @@ class AppieDirParser(object):
     * path: filepath ( in the build dir )
     * mtime: modification time
     """    
-    def match(self, name):
+    def match(self, direntry):
         """
-        Test if this parser matches for a name
+        Test if this parser matches for a DirEntry
         
-        :param str name: file or directory name
+        :param DirEntry direntry: file or directory DirEntry object (see os.scandir)
         """ 
         return False
         
-    def is_modified(self, dirobj, prev_dict):
+    def is_modified(self, direntry, prev_dict):
         """
         Check file's mtime and compares it to the previous run value
         
         Returns true if newer
         """
-        if not prev_dict or not prev_dict.get(dirobj.name):
+        if not prev_dict or not prev_dict.get(direntry.name):
             return True   # no previous data found so modified
-        return dirobj.stat().st_mtime > prev_dict.get(dirobj.name)[ 'mtime' ] 
+        return direntry.stat().st_mtime > prev_dict.get(direntry.name)[ 'mtime' ] 
 
     def parse_dir(self, path, dest_path, prev_dict=None):
         """
@@ -104,7 +104,7 @@ class AppieDirParser(object):
                 d[item.name] = self.parse_subdir( item, dest_path, prev_dict, web_path)
             elif self.is_modified( item, prev_dict ):
                 # find a parser for this file
-                parser = Appie.match_file_parsers(item.name)
+                parser = Appie.match_file_parsers(item.path, item.name)
                 d[item.name] = parser.parse_file( item.path, item.name, dest_path )
                 d[item.name]['path'] = web_path
                 d[item.name]['mtime'] = item.stat().st_mtime
@@ -118,21 +118,21 @@ class AppieDirParser(object):
                 
         return d
 
-    def parse_subdir(self, diritem, dest_path, prev_dict, web_path):
+    def parse_subdir(self, direntry, dest_path, prev_dict, web_path):
         ret = {}
-        new_dest_path = os.path.join(dest_path, diritem.name)
+        new_dest_path = os.path.join(dest_path, direntry.name)
         # first create its dir
         try:
             os.makedirs(new_dest_path)
         except FileExistsError:
             pass
         # find a parser for this dir
-        parser = Appie.match_dir_parsers(diritem.name)
-        content = parser.parse_dir( diritem.path, new_dest_path, prev_dict.get( diritem.name ))
+        parser = Appie.match_dir_parsers(direntry.name)
+        content = parser.parse_dir( direntry.path, new_dest_path, prev_dict.get( direntry.name ))
         # add meta information if the parser returned content
         if content:
             content['path'] = web_path
-            content['mtime'] = diritem.stat().st_mtime
+            content['mtime'] = direntry.stat().st_mtime
         else:
             # if not we can remove the dir       TODO: does this hold?
             # will error if new_dest_path not empty
@@ -149,11 +149,11 @@ class AppieFileParser(object):
         self.copyfile = True                # use the flag to tell the dirparser
                                             # to copy the file or not
 
-    def match(self, name):
+    def match(self, path, filename):
         """
-        Matches on files with the extension .textile
+        Matches on files starting with the _ (underscore).
         """
-        if name[0] == '_':
+        if filename[0] == '_':
             return True
 
     def parse_file(self, path, filename, dest_path):
@@ -167,7 +167,7 @@ class AppieFileParser(object):
         :param str path: Path to the file
         :param str filename: The name of the file
         """
-        if self.match(filename):                         # we only test again because the FileParser is always returned if
+        if self.match(path, filename):                         # we only test again because the FileParser is always returned if
             return { 'content': self.load_file(path) }   # no other parser matches but we only want to load if starting with _
         return {}
         
@@ -188,12 +188,12 @@ class AppieTextileParser(AppieFileParser):
     """
     Simple textile file to html parser
     """
-    def match(self, name):
+    def match(self, path, filename):
         """
         Matches on files with the extension .textile
         """
-        logging.debug('Matching AppieTextileParser to {0}'.format(name))
-        if name.endswith('.textile'):
+        logging.debug('Matching AppieTextileParser to {0}'.format(filename))
+        if filename.endswith('.textile'):
             return True
 
     def parse_file(self, path, filename, dest_path):
@@ -251,14 +251,14 @@ class Appie(object):
         return AppieDirParser() # default is self
 
     @staticmethod
-    def match_file_parsers(filename):
+    def match_file_parsers(path, filename):
         """
         Returns the parser for the file
         
         :params str filename: filename to match on
         """
         for p in Appie.file_parsers:
-            if p.match(filename):
+            if p.match(path, filename):
                 return p
         return AppieFileParser() # default is AppieFileParser
 
