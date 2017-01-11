@@ -127,7 +127,7 @@ class AppieDirParser(object):
         except FileExistsError:
             pass
         # find a parser for this dir
-        parser = Appie.match_dir_parsers(direntry.name)
+        parser = Appie.match_dir_parsers(direntry)
         content = parser.parse_dir( direntry.path, new_dest_path, prev_dict.get( direntry.name ))
         # add meta information if the parser returned content
         if content:
@@ -239,14 +239,14 @@ class Appie(object):
         Appie.file_parsers.insert(0, inst)
 
     @staticmethod
-    def match_dir_parsers(dirname):
+    def match_dir_parsers(direntry):
         """
         Returns the parser for the directory
         
-        :params str dirname: directory name to match on
+        :params DirEntry direntry: directory to match on
         """
         for p in Appie.dir_parsers:
-            if p.match(dirname):
+            if p.match(direntry):
                 return p
         return AppieDirParser() # default is self
 

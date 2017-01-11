@@ -256,8 +256,8 @@ class AppieBlogDirParser(appie.AppieDirParser):
     Matches on a directory named 'blog'. Then runs every .md file
     with metadata into the blog.jinja2 file to create html files
     """
-    def match(self, path, filename):
-        if filename == 'blog':
+    def match(self, direntry):
+        if direntry.name == 'blog':
             return True
 
     def parse_dir(self, path, dest_path, prev_dict=None):
