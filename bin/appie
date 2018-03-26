@@ -19,6 +19,7 @@ import argparse
 import appie
 import logging
 import sys
+import time
 import importlib
 
 def str_to_class(class_path):
@@ -131,6 +132,8 @@ if __name__ == '__main__':
 
             print("Appie reparsing")
             os.chdir(cwd)   # back to original working dir
+            # delay to make sure temporary write files are cleaned up
+            time.sleep(0.3)
             a.parse()
             os.chdir(appie.config['target']) # to http root dir
 

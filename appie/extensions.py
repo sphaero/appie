@@ -127,7 +127,9 @@ class AppiePNGParser(appie.AppieFileParser):
 
         img = Image.open(filepath)
         size = img.size
-        if img.mode in ('RGB', 'RGBA', 'CMYK', 'I'):
+        if img.mode == 'RGBA':
+            img = img.convert("RGB")
+        if img.mode in ('RGB', 'CMYK', 'I'):
             img.thumbnail(self.jpg_size, Image.ANTIALIAS)
             img.save(os.path.join(dest_path, jpg_filename),
                      "JPEG", quality=80, optimize=True,
